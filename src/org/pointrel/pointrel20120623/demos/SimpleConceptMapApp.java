@@ -30,9 +30,6 @@ import javax.swing.Timer;
 import org.pointrel.pointrel20120623.core.Session;
 import org.pointrel.pointrel20120623.core.TransactionVisitor;
 import org.pointrel.pointrel20120623.core.Utility;
-import org.pointrel.pointrel20120623.demos.SimpleNoteTakerApp.NoteUUIDCollector;
-import org.pointrel.pointrel20120623.demos.SimpleNoteTakerApp.NoteVersion;
-import org.pointrel.pointrel20120623.demos.SimpleNoteTakerApp.NoteVersionCollector;
 
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -56,7 +53,8 @@ public class SimpleConceptMapApp {
 	private int ReloadFrequency_ms = 3000;
 
 	// TODO: Fix this so it is settable
-	public String conceptMapUUID = "default_concept_map";
+	public static String DefaultConceptMapUUID = "default_concept_map";
+	public String conceptMapUUIDForApp = DefaultConceptMapUUID;
 	
 	public SimpleConceptMapApp(Session session) {
 		this.session = session;
@@ -123,6 +121,9 @@ public class SimpleConceptMapApp {
 		}
 		
 		public ConceptMap(String documentUUID, String timestamp, String userID, String title, String noteBody) {
+			if (documentUUID == null) {
+				throw new RuntimeException("documentUUID should not be null");
+			}
 			this.documentUUID = documentUUID;
 			this.timestamp = timestamp;
 			this.userID = userID;
@@ -214,7 +215,7 @@ public class SimpleConceptMapApp {
 			
 			// TODO: Maybe different error handling for this condition?
 			if (documentUUID_Read == null) {
-				throw new RuntimeException("The field documentUUID should not be null");
+				throw new RuntimeException("The field documentUUID read should not be null");
 			}
 			
 			documentUUID = documentUUID_Read;
@@ -329,7 +330,7 @@ public class SimpleConceptMapApp {
 	@SuppressWarnings("serial") 
 	class ConceptMapPanel extends JPanel implements MouseListener, MouseMotionListener {
 		// TODO: Think about this concept -- is this mutable or not? When are new versions made? Is something changeable with list? Etc.
-		ConceptMap conceptMap = new ConceptMap(conceptMapUUID, Utility.currentTimestamp(), "default_user@example.com", "", "");
+		ConceptMap conceptMap = new ConceptMap(DefaultConceptMapUUID, Utility.currentTimestamp(), "default_user@example.com", "", "");
 		ConceptDrawable selected = null;
 		Point down = null;
 		Point offset = null;
@@ -489,7 +490,9 @@ public class SimpleConceptMapApp {
 		// TODO: Fix user
 		session.setUser("tester1@example.com");
 		String conceptMapVersionURI = session.addContent(jsonBytes, ConceptMap.ContentType);
+		System.out.println("Writing concept map ==============================================");
 		session.addSimpleTransactionForVariable(session.getWorkspaceVariable(), conceptMapVersionURI, "new concept map version");
+		System.out.println("Just wrote new concept map: " + new String(jsonBytes));
 		//ConceptMap newMap = gson.fromJson(json, ConceptMap.class);
 		//System.out.println(newMap.drawables.size());
 	}
@@ -521,7 +524,7 @@ public class SimpleConceptMapApp {
 		//} catch (IOException e) {
 		//	e.printStackTrace();
 		//}
-		ConceptMap newMap = loadLatestConceptMapForUUID(conceptMapUUID);
+		ConceptMap newMap = loadLatestConceptMapForUUID(conceptMapUUIDForApp);
 		if (newMap != null) {
 			mapPanel.conceptMap = newMap;
 			mapPanel.repaint();
@@ -553,6 +556,7 @@ public class SimpleConceptMapApp {
 				e.printStackTrace();
 				return false;
 			}
+			System.out.println("conceptMap.documentUUID: " + conceptMap.documentUUID);
 			if (conceptMap.documentUUID.equals(documentUUID)) {
 				conceptMaps.add(conceptMap);
 				if (maximumCount > 0 && conceptMaps.size() >= maximumCount) return true;
@@ -595,7 +599,7 @@ public class SimpleConceptMapApp {
 		return listItems.get(0);
 	}
 	
-	// Finds all added versions of a note up to a maximumCount (use zero for all)
+	// Finds all added versions of a concept map up to a maximumCount (use zero for all)
 	ArrayList<ConceptMap> loadConceptMapVersionsForUUID(String uuid, int maximumCount) {
 		// TODO: Should create, maintain, and use an index
 		String transactionURI = session.getVariable(session.getWorkspaceVariable());
@@ -605,7 +609,7 @@ public class SimpleConceptMapApp {
 		return visitor.conceptMaps;			
 	}
 	
-	// Finds all uuids for notes up to a maximumCount (use zero for all)
+	// Finds all uuids for concept maps up to a maximumCount (use zero for all)
 	Set<String> loadConceptMapUUIDs(int maximumCount) {
 		// TODO: Should create, maintain, and use an index
 		String transactionURI = session.getVariable(session.getWorkspaceVariable());
