@@ -76,11 +76,11 @@ public class ResourceViewerUtilityApp {
 		});
 	}
 
-	protected JPanel openGUI() {		
+	public JPanel openGUI() {		
 		listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
 		listPanel.add(resourceListScrollPane);
-		listPanel.add(chooseResourceButton);
 		listPanel.add(chooseVariableButton);
+		listPanel.add(chooseResourceButton);
 		listPanel.add(chooseArchiveButton);
 		
 		uriTextField.setMaximumSize(new Dimension(Integer.MAX_VALUE, uriTextField.getPreferredSize().height));
@@ -104,7 +104,7 @@ public class ResourceViewerUtilityApp {
 		
 		hookupActions();
 		
-		addSomeResourceItemsToList();
+		// addSomeResourceItemsToList();
 		
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
