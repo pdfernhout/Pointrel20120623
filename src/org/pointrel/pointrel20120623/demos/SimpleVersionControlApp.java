@@ -19,9 +19,11 @@ import javax.swing.SwingUtilities;
 import org.pointrel.pointrel20120623.core.Session;
 
 public class SimpleVersionControlApp {
-	Session session;
-	final JFrame frame = new JFrame("Simple Version Control App");
+	public static String FrameNameBase = "Simple Version Control App";
 	
+	Session session;
+
+	JPanel appPanel = new JPanel();
 	final JSplitPane splitPane1 = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 	final JSplitPane splitPane2 = new JSplitPane();
 	final JSplitPane splitPane3 = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
@@ -48,26 +50,25 @@ public class SimpleVersionControlApp {
 	public SimpleVersionControlApp(Session session) {
 		this.session = session;
 	}
-
+	
 	public static void main(String[] args) {
-		String userHome = System.getProperty("user.home");
-		System.out.println(userHome);
-		File archive = new File(userHome, "PointrelArchive");
+		File archive = new File("./PointrelArchive");
 		Session session = new Session(archive);
-		// session = new Session("http://twirlip.com/pointrel/");
-		
+		// Session session = new Session("http://twirlip.com/pointrel/");
+		final JFrame frame = new JFrame(FrameNameBase);
 		final SimpleVersionControlApp app = new SimpleVersionControlApp(session);
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				app.openGUI();
+				JPanel appPanel = app.openGUI();
+				frame.setSize(600, 600);
+				frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+				frame.add(appPanel);
+				frame.setVisible(true);
 			}
 		});
 	}
 
-	protected void openGUI() {		
-		frame.setSize(600, 600);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
+	protected JPanel openGUI() {		
 		buttonPanel.add(loadCurrentFilesButton);
 		buttonPanel.add(commitButton);
 		buttonPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, buttonPanel.getPreferredSize().height));		
@@ -92,13 +93,14 @@ public class SimpleVersionControlApp {
 		splitPane1.setBottomComponent(splitPane3);
 		splitPane1.setDividerLocation(100);
 		
-		frame.add(splitPane1, BorderLayout.CENTER);
+		appPanel.setLayout(new BorderLayout());
+		appPanel.add(splitPane1, BorderLayout.CENTER);
 		
 		hookupActions();
 		
 		committerTextField.setText("USERID");
 		
-		frame.setVisible(true);
+		return appPanel;
 	}
 
 	private void hookupActions() {
