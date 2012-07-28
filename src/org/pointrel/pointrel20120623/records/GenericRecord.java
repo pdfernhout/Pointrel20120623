@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.JsonToken;
  * @author Paul Fernhout
  */
 public class GenericRecord {
+	@SuppressWarnings("rawtypes")
 	protected final GenericRecordManager recordFactory;
 	protected final String context;
 	protected final String document;
@@ -27,7 +28,7 @@ public class GenericRecord {
 	protected final String committer;
 	protected final HashMap<String,String> values = new HashMap<String,String>();
 		
-	public GenericRecord(GenericRecordManager recordFactory, String context, String document, String timestamp, String committer, Map<String,String> values) {
+	public GenericRecord(GenericRecordManager<GenericRecord> recordFactory, String context, String document, String timestamp, String committer, Map<String,String> values) {
 		this.recordFactory = recordFactory;
 		this.context = context;
 		this.document = document;
@@ -37,12 +38,13 @@ public class GenericRecord {
 		values.putAll(values);
 	}
 	
-	public GenericRecord(GenericRecordManager recordFactory, String context, String document, Map<String,String> values) {
+	public GenericRecord(GenericRecordManager<GenericRecord> recordFactory, String context, String document, Map<String,String> values) {
 		this(recordFactory, context, document, Utility.currentTimestamp(), recordFactory.session.getUser(), values);
 	}
 	
-	public GenericRecord(GenericRecordManager recordFactory, byte[] content) throws IOException {
-		this.recordFactory = recordFactory;
+	@SuppressWarnings({ "rawtypes" })
+	public GenericRecord(GenericRecordManager genericRecordManager, byte[] content) throws IOException {
+		this.recordFactory = genericRecordManager;
 		
 		boolean typeChecked = false;
 		boolean versionChecked = false;
@@ -65,14 +67,14 @@ public class GenericRecord {
 
 			if (fieldName.equals("type")) {
 				String type = jsonParser.getText();
-				if (!recordFactory.contentType.equals(type)) {
-					throw new RuntimeException("Expected type of " +  recordFactory.contentType + "  but got : " + type);
+				if (!genericRecordManager.contentType.equals(type)) {
+					throw new RuntimeException("Expected type of " +  genericRecordManager.contentType + "  but got : " + type);
 				}
 				typeChecked = true;
 			} else if (fieldName.equals("version")) {
 				String version = jsonParser.getText();
-				if (!recordFactory.version.equals(version)) {
-					throw new RuntimeException("Expected version of " + recordFactory.version + "  but got : " + version);
+				if (!genericRecordManager.version.equals(version)) {
+					throw new RuntimeException("Expected version of " + genericRecordManager.version + "  but got : " + version);
 				}
 				versionChecked = true;
 			} else if (fieldName.equals("context")) {
@@ -92,11 +94,11 @@ public class GenericRecord {
 		jsonParser.close();
 		
 		if (!typeChecked) {
-			throw new RuntimeException("Expected type of " + recordFactory.contentType + "  but no type field");
+			throw new RuntimeException("Expected type of " + genericRecordManager.contentType + "  but no type field");
 		}
 		
 		if (!versionChecked) {
-			throw new RuntimeException("Expected version of " + recordFactory.version + "  but no version field");
+			throw new RuntimeException("Expected version of " + genericRecordManager.version + "  but no version field");
 		}
 
 		context = context_Read;
@@ -153,6 +155,7 @@ public class GenericRecord {
 		return "<Record " + recordFactory.contentType + " | " + timestamp + " | " + committer + ">";
 	}
 	
+	@SuppressWarnings("rawtypes")
 	public GenericRecordManager getRecordFactory() {
 		return recordFactory;
 	}
