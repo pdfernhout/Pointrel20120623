@@ -1,6 +1,7 @@
 package org.pointrel.pointrel20120623.demos;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -36,7 +37,7 @@ public class ResourceViewerUtilityApp {
 	
 	Session session;
 	
-	JFrame frame = new JFrame(FrameNameBase);
+	JPanel appPanel = new JPanel();
 	DefaultListModel resourceListModel = new DefaultListModel();
 	JSplitPane splitPane = new JSplitPane();
 	JPanel listPanel = new JPanel();
@@ -57,25 +58,25 @@ public class ResourceViewerUtilityApp {
 	public ResourceViewerUtilityApp(Session session) {
 		this.session = session;
 	}
-
+	
 	public static void main(String[] args) {
 		File archive = new File("./PointrelArchive");
 		Session session = new Session(archive);
+		// Session session = new Session("http://twirlip.com/pointrel/");
+		final JFrame frame = new JFrame(FrameNameBase);
 		final ResourceViewerUtilityApp app = new ResourceViewerUtilityApp(session);
-
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				app.openGUI();
+				JPanel appPanel = app.openGUI();
+				frame.setSize(800, 600);
+				frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+				frame.add(appPanel);
+				frame.setVisible(true);
 			}
 		});
 	}
 
-	protected void openGUI() {		
-		frame.setSize(800, 600);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
-		updateFrameTitle();
-		
+	protected JPanel openGUI() {		
 		listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
 		listPanel.add(resourceListScrollPane);
 		listPanel.add(chooseResourceButton);
@@ -98,17 +99,33 @@ public class ResourceViewerUtilityApp {
 		splitPane.setLeftComponent(listPanel);
 		splitPane.setRightComponent(contentPanel);
 		
-		frame.add(splitPane, BorderLayout.CENTER);
+		appPanel.setLayout(new BorderLayout());
+		appPanel.add(splitPane, BorderLayout.CENTER);
 		
 		hookupActions();
 		
 		addSomeResourceItemsToList();
 		
-		frame.setVisible(true);
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				updateFrameTitle();
+			} 
+		});
+
+		return appPanel;
+	}
+	
+	Component getTop() {
+		return appPanel;
+	}
+	
+	void setTitle(String newTitle) {
+		JFrame frame = (JFrame) SwingUtilities.getRoot(appPanel);
+		frame.setTitle(newTitle);
 	}
 
 	private void updateFrameTitle() {
-		frame.setTitle(FrameNameBase + " on: " + session.getArchiveDirectory().getAbsolutePath());
+		this.setTitle(FrameNameBase + " on: " + session.getArchiveDirectory().getAbsolutePath());
 	}
 
 	private void addSomeResourceItemsToList() {
@@ -194,7 +211,7 @@ public class ResourceViewerUtilityApp {
 	}
 
 	protected void chooseResourceButtonPressed() {
-		String uri = JOptionPane.showInputDialog(frame, "Resource URI?");
+		String uri = JOptionPane.showInputDialog(getTop(), "Resource URI?");
 		if (uri == null || uri.length() == 0) return;
 		this.addOrSelectURI(uri);
 	}
@@ -207,12 +224,12 @@ public class ResourceViewerUtilityApp {
 		
 		ArrayList<String> variableNames = session.getAllVariableNames();
 		String[] variableNamesArray = (String[]) variableNames.toArray(new String[variableNames.size()]);
-		String selection = (String) JOptionPane.showInputDialog(frame, "Please choose a variable", "Variables", JOptionPane.QUESTION_MESSAGE, null, variableNamesArray, null);
+		String selection = (String) JOptionPane.showInputDialog(getTop(), "Please choose a variable", "Variables", JOptionPane.QUESTION_MESSAGE, null, variableNamesArray, null);
 		System.out.println("You selected: " + selection);
 		if (selection == null || selection.length() == 0) return;
 	
 		String uri = session.basicGetVariable(selection);
-		if (uri == null) JOptionPane.showMessageDialog(frame, "Variable not found: " + selection);
+		if (uri == null) JOptionPane.showMessageDialog(getTop(), "Variable not found: " + selection);
 		this.addOrSelectURI(uri);
 	}
 	
@@ -226,7 +243,7 @@ public class ResourceViewerUtilityApp {
 			e.printStackTrace();
 		}
 		System.out.println("Dir actual: " + fileChooser.getCurrentDirectory());
-		int returnedValue = fileChooser.showOpenDialog(frame);
+		int returnedValue = fileChooser.showOpenDialog(getTop());
 		if (returnedValue == JFileChooser.APPROVE_OPTION) {
 			File archive = fileChooser.getSelectedFile();
 			// TODO: Need some way to confirm this is an archive
