@@ -291,7 +291,7 @@ public class SimpleChatApp {
 	protected void refreshButtonPressed() {
 		refreshButton.setEnabled(false);
 		sendButton.setEnabled(false);
-		SwingWorker worker = new SwingWorker<String, Void>() {
+		SwingWorker<String, Void> worker = new SwingWorker<String, Void>() {
 			public String doInBackground() {
 				ArrayList<ChatItem> chatItems = loadChatItemsForUUID(chatAppChatUUID, maxChatItemsOnRefresh);
 				// List<ChatItem> chatItemsSubset = chatItems.subList(0, Math.min(MaxChatItemsOnRefresh, chatItems.size()));
@@ -330,7 +330,7 @@ public class SimpleChatApp {
 		sendButton.setEnabled(false);
 		refreshButton.setEnabled(false);
 		
-		SwingWorker worker = new SwingWorker<String, Void>() {
+		SwingWorker<String, Void> worker = new SwingWorker<String, Void>() {
 			public String doInBackground() {
 				String timestamp = Utility.currentTimestamp();
 					
