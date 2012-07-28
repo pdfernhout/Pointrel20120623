@@ -20,6 +20,7 @@ Something with statistics about variables and resources on local disk
 Web pages (with CGI and JavaScript?) that can interact with the Server datastore
 Work on indexing (what should it really do? how should it work?)
 Simple generic GUI forms (for generic records?) like Drupal with lists of fields and types?
+Log using JSON
 
 ===== DONE
 
