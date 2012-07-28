@@ -3,7 +3,6 @@ Snapshot taker as source code control
 SimpleCommunityMessagingSystem with Bulletin board and members list
 Some kind of validation for new transactions?
 Some kind of authentication when using server?
-Improve Concept Map App so can work with other apps
 SimpleRecordBrowser (or something like that)
 Cascading caches for resources (memory, disk, server)
 Local copy of remote variables as used for archival and offline use
@@ -26,3 +25,6 @@ Log using JSON
 
 Better support for JSON conversion so don't need gson and can run as unsigned webstart?
 	Now uses Jackson library
+	
+Improve Concept Map App so can work with other apps
+

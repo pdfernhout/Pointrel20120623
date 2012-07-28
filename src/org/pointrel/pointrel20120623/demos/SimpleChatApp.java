@@ -27,6 +27,7 @@ import org.jdesktop.swingworker.SwingWorker;
 import org.pointrel.pointrel20120623.core.Session;
 import org.pointrel.pointrel20120623.core.TransactionVisitor;
 import org.pointrel.pointrel20120623.core.Utility;
+import org.pointrel.pointrel20120623.demos.SimpleConceptMapApp.ConceptMap;
 
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -71,10 +72,8 @@ public class SimpleChatApp {
 	JButton sendButton = new JButton("Send");	
 	JButton refreshButton = new JButton("Refresh");	
 	
-	final String chatAppVariableName = SimpleChatApp.class.getCanonicalName();
-	
 	// TODO: Figure out what to do about UUID of chat
-	String chatAppChatUUID = "default";
+	String chatAppChatUUID = "default_chat";
 	
 	// TODO: Maybe can generalize ChatItem and ChatItemVisitor with ListItem somehow?
 	
@@ -196,6 +195,7 @@ public class SimpleChatApp {
 	}
 	
 	class ChatItemCollector extends TransactionVisitor {
+		final String encodedContentType = Utility.encodeContentType(ChatItem.ContentType);
 		ArrayList<ChatItem> chatItems = new ArrayList<ChatItem>();
 		final int maximumCount;
 		final String chatUUID;
@@ -208,6 +208,7 @@ public class SimpleChatApp {
 		// TODO: Maybe should handle removes, too? Tricky as they come before the inserts when recursing
 		
 		public boolean resourceInserted(String resourceUUID) {
+			if (!resourceUUID.endsWith(encodedContentType)) return false;
 			byte[] chatItemContent = session.getContentForURI(resourceUUID);
 			if (chatItemContent == null) {
 				System.out.println("content not found for chat item: " + resourceUUID);
@@ -234,7 +235,7 @@ public class SimpleChatApp {
 	// Finds all chat items for a chatUUID up to a maximumCount (use zero for all)
 	ArrayList<ChatItem> loadChatItemsForUUID(String uuid, int maximumCount) {
 		// TODO: Should create, maintain, and use an index
-		String transactionURI = session.getVariable(chatAppVariableName);
+		String transactionURI = session.getVariable(session.getWorkspaceVariable());
 		ChatItemCollector visitor = new ChatItemCollector(uuid, maximumCount);
 		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(session, transactionURI, visitor);
 		return visitor.chatItems;			
@@ -336,7 +337,7 @@ public class SimpleChatApp {
 					
 				ChatItem chatItem = new ChatItem(chatAppChatUUID, timestamp, userID, message);
 				String uri = session.addContent(chatItem.toJSONBytes(), ChatItem.ContentType);
-				session.addSimpleTransactionForVariable(chatAppVariableName, uri, "New chat message");
+				session.addSimpleTransactionForVariable(session.getWorkspaceVariable(), uri, "New chat message");
 				
 				if (message.equals("test100")) {
 					test100();
@@ -371,7 +372,7 @@ public class SimpleChatApp {
 			
 			final ChatItem chatItem = new ChatItem(chatAppChatUUID, timestamp, "TestUserID", message);
 			String uri = session.addContent(chatItem.toJSONBytes(), ChatItem.ContentType);
-			session.addSimpleTransactionForVariable(chatAppVariableName, uri, "New chat message");
+			session.addSimpleTransactionForVariable(session.getWorkspaceVariable(), uri, "New chat message");
 			
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() {

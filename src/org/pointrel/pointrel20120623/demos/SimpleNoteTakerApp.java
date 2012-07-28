@@ -199,10 +199,11 @@ public class SimpleNoteTakerApp {
 	
 	void saveItem(NoteVersion listItem) {
 		String noteURI = session.addContent(listItem.toJSONBytes(), NoteVersion.ContentType);
-		session.addSimpleTransactionForVariable(applicationIdentifier, noteURI, "Updating note");
+		session.addSimpleTransactionForVariable(session.getWorkspaceVariable(), noteURI, "Updating note");
 	}
 	
 	class NoteVersionCollector extends TransactionVisitor {
+		final String encodedContentType = Utility.encodeContentType(NoteVersion.ContentType);
 		ArrayList<NoteVersion> listItems = new ArrayList<NoteVersion>();
 		final int maximumCount;
 		final String documentUUID;
@@ -215,6 +216,7 @@ public class SimpleNoteTakerApp {
 		// TODO: Maybe should handle removes, too? Tricky as they come before the inserts when recursing
 		
 		public boolean resourceInserted(String resourceUUID) {
+			if (!resourceUUID.endsWith(encodedContentType)) return false;
 			byte[] noteVersionContent = session.getContentForURI(resourceUUID);
 			NoteVersion noteVersion;
 			try {
@@ -261,14 +263,14 @@ public class SimpleNoteTakerApp {
 	// Finds most recently added version of note
 	NoteVersion loadListItemForUUID(String uuid) {
 		ArrayList<NoteVersion> listItems = loadNoteVersionsForUUID(uuid, 1);
-		if (listItems.isEmpty()) return null;
+		if (listItems == null || listItems.isEmpty()) return null;
 		return listItems.get(0);
 	}
 	
 	// Finds all added versions of a note up to a maximumCount (use zero for all)
 	ArrayList<NoteVersion> loadNoteVersionsForUUID(String uuid, int maximumCount) {
 		// TODO: Should create, maintain, and use an index
-		String transactionURI = session.getVariable(applicationIdentifier);
+		String transactionURI = session.getVariable(session.getWorkspaceVariable());
 		NoteVersionCollector visitor = new NoteVersionCollector(uuid, maximumCount);
 		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(session, transactionURI, visitor);
 		if (visitor.listItems.isEmpty()) return null;
@@ -278,7 +280,7 @@ public class SimpleNoteTakerApp {
 	// Finds all uuids for notes up to a maximumCount (use zero for all)
 	Set<String> loadNoteUUIDs(int maximumCount) {
 		// TODO: Should create, maintain, and use an index
-		String transactionURI = session.getVariable(applicationIdentifier);
+		String transactionURI = session.getVariable(session.getWorkspaceVariable());
 		NoteUUIDCollector visitor = new NoteUUIDCollector(maximumCount);
 		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(session, transactionURI, visitor);
 		if (visitor.noteUUIDs.isEmpty()) return new HashSet<String>();

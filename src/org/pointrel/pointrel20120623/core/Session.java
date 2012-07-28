@@ -10,11 +10,15 @@ public class Session {
 	final File archiveDirectory;
 	final String serverURL;
 	String user;
+	String workspaceVariable;
 	ResourcesInterface resourceFiles;
 	VariablesInterface variableLogs;
 	Indexes indexes;
 	
 	HashMap<String, byte[]> resourceCache = new HashMap<String, byte[]>();
+	
+	// TODO: Really should remove this and maybe not have a default?
+	public static String DefaultWorkspaceVariable = "default_workspace";
 	
 	public Session(File pointrelArchiveDirectory) {
 		this.archiveDirectory = pointrelArchiveDirectory;
@@ -22,6 +26,7 @@ public class Session {
 		resourceFiles = new ResourceFiles(pointrelArchiveDirectory);
 		variableLogs = new VariableLogs(pointrelArchiveDirectory);
 		indexes = new Indexes();
+		workspaceVariable = DefaultWorkspaceVariable;
 	}
 	
 	public Session(String serverURL) {
@@ -31,6 +36,7 @@ public class Session {
 		resourceFiles = server;
 		variableLogs = server;
 		indexes = new Indexes();
+		workspaceVariable = DefaultWorkspaceVariable;
 	}
 
 	public void setUser(String user) {
@@ -38,9 +44,25 @@ public class Session {
 	}
 
 	public String getUser() {
+		// TODO: Temporary for debugging?
+		if (user == null) {
+			throw new RuntimeException("user was not set");
+		}
 		return user;
 	}
 	
+	public String getWorkspaceVariable() {
+		// TODO: Temporary for debugging?
+		if (workspaceVariable == null) {
+			throw new RuntimeException("Workspace variable was not set");
+		}
+		return workspaceVariable;
+	}
+
+	public void setWorkspaceVariable(String workspaceVariable) {
+		this.workspaceVariable = workspaceVariable;
+	}
+
 	public String addContent(byte[] content, String contentType, String precalculatedURI) {
 		try {
 			String uri = resourceFiles.addContent(content, contentType, getUser(), precalculatedURI);

@@ -17,6 +17,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -26,7 +28,11 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 import org.pointrel.pointrel20120623.core.Session;
+import org.pointrel.pointrel20120623.core.TransactionVisitor;
 import org.pointrel.pointrel20120623.core.Utility;
+import org.pointrel.pointrel20120623.demos.SimpleNoteTakerApp.NoteUUIDCollector;
+import org.pointrel.pointrel20120623.demos.SimpleNoteTakerApp.NoteVersion;
+import org.pointrel.pointrel20120623.demos.SimpleNoteTakerApp.NoteVersionCollector;
 
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -35,7 +41,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 
 // TODO: Make sure done writing before close
-// TODO: Background writing and reading
+// TODO: Background writing and reading as SwingWorker
 // TODO: How to know when reading/writing and how if locks GUI or otherwise user knows what is happening
 
 public class SimpleConceptMapApp {
@@ -47,12 +53,10 @@ public class SimpleConceptMapApp {
 	ConceptMapPanel mapPanel = new ConceptMapPanel();
 	JButton newConceptButton = new JButton("New concept...");
 	
-	final String conceptMapAppVariableName = SimpleConceptMapApp.class.getCanonicalName();
-	
-	// TODO: Figure out what to do about UUID of map
-	String conceptMapAppChatUUID = "default";
-
 	private int ReloadFrequency_ms = 3000;
+
+	// TODO: Fix this so it is settable
+	public String conceptMapUUID = "default_concept_map";
 	
 	public SimpleConceptMapApp(Session session) {
 		this.session = session;
@@ -79,11 +83,11 @@ public class SimpleConceptMapApp {
 		final public static String ContentType = "text/vnd.pointrel.SimpleConceptMap.ConceptMap.json";
 		final public static String Version = "20120623.0.1.0";
 		
-//		final String documentUUID;
-//		final String timestamp;
-//		final String userID;
-//		final String title;
-//		final String noteBody;
+		final String documentUUID;
+		final String timestamp;
+		final String userID;
+		final String title;
+		final String noteBody;
 		
 		public ArrayList<ConceptDrawable> drawables = new ArrayList<ConceptDrawable>();
 		
@@ -118,18 +122,22 @@ public class SimpleConceptMapApp {
 			return String.valueOf(buf);
 		}
 		
-		public ConceptMap() {
-			// Nothing needed
+		public ConceptMap(String documentUUID, String timestamp, String userID, String title, String noteBody) {
+			this.documentUUID = documentUUID;
+			this.timestamp = timestamp;
+			this.userID = userID;
+			this.title = title;
+			this.noteBody = noteBody;
 		}
 		
 		public ConceptMap(byte[] content) throws IOException {
 			boolean typeChecked = false;
 			boolean versionChecked = false;
-//			String documentUUID_Read = null;
-//			String timestamp_Read = null;
-//			String userID_Read = null;
-//			String title_Read = null;
-//			String noteBody_Read = null;
+			String documentUUID_Read = null;
+			String timestamp_Read = null;
+			String userID_Read = null;
+			String title_Read = null;
+			String noteBody_Read = null;
 			
 			JsonFactory jsonFactory = new JsonFactory();
 			ByteArrayInputStream inputStream = new ByteArrayInputStream(content);
@@ -180,16 +188,16 @@ public class SimpleConceptMapApp {
 						ConceptDrawable drawable = new ConceptDrawable(uuid_Read, concept_Read, color, rectangle);
 						drawables.add(drawable);
 					}
-//				} else if (fieldName.equals("documentUUID")) {
-//					documentUUID_Read = jsonParser.getText();
-//				} else if (fieldName.equals("timestamp")) {
-//					timestamp_Read = jsonParser.getText();
-//				} else if (fieldName.equals("userID")) {
-//					userID_Read = jsonParser.getText();
-//				} else if (fieldName.equals("title")) {
-//					title_Read = jsonParser.getText();
-//				} else if (fieldName.equals("noteBody")) {
-//					noteBody_Read = jsonParser.getText();
+				} else if (fieldName.equals("documentUUID")) {
+					documentUUID_Read = jsonParser.getText();
+				} else if (fieldName.equals("timestamp")) {
+					timestamp_Read = jsonParser.getText();
+				} else if (fieldName.equals("userID")) {
+					userID_Read = jsonParser.getText();
+				} else if (fieldName.equals("title")) {
+					title_Read = jsonParser.getText();
+				} else if (fieldName.equals("noteBody")) {
+					noteBody_Read = jsonParser.getText();
 				} else {
 					throw new IOException("Unrecognized field '" + fieldName + "'");
 				}
@@ -204,11 +212,16 @@ public class SimpleConceptMapApp {
 				throw new RuntimeException("Expected version of " + Version + "  but no version field");
 			}
 			
-//			documentUUID = documentUUID_Read;
-//			timestamp = timestamp_Read;
-//			userID = userID_Read;
-//			title = title_Read;
-//			noteBody = noteBody_Read;
+			// TODO: Maybe different error handling for this condition?
+			if (documentUUID_Read == null) {
+				throw new RuntimeException("The field documentUUID should not be null");
+			}
+			
+			documentUUID = documentUUID_Read;
+			timestamp = timestamp_Read;
+			userID = userID_Read;
+			title = title_Read;
+			noteBody = noteBody_Read;
 
 		}
 
@@ -230,6 +243,11 @@ public class SimpleConceptMapApp {
 				jsonGenerator.writeStartObject();
 				jsonGenerator.writeStringField("type", ContentType);
 				jsonGenerator.writeStringField("version", Version);
+				jsonGenerator.writeStringField("documentUUID", documentUUID);
+				jsonGenerator.writeStringField("timestamp", timestamp);
+				jsonGenerator.writeStringField("userID", userID);
+				jsonGenerator.writeStringField("title", title);
+				jsonGenerator.writeStringField("noteBody", noteBody);
 				
 				jsonGenerator.writeArrayFieldStart("drawables");
 				for (ConceptDrawable drawable: drawables) {
@@ -310,7 +328,8 @@ public class SimpleConceptMapApp {
 	
 	@SuppressWarnings("serial") 
 	class ConceptMapPanel extends JPanel implements MouseListener, MouseMotionListener {
-		ConceptMap conceptMap = new ConceptMap();
+		// TODO: Think about this concept -- is this mutable or not? When are new versions made? Is something changeable with list? Etc.
+		ConceptMap conceptMap = new ConceptMap(conceptMapUUID, Utility.currentTimestamp(), "default_user@example.com", "", "");
 		ConceptDrawable selected = null;
 		Point down = null;
 		Point offset = null;
@@ -470,7 +489,7 @@ public class SimpleConceptMapApp {
 		// TODO: Fix user
 		session.setUser("tester1@example.com");
 		String conceptMapVersionURI = session.addContent(jsonBytes, ConceptMap.ContentType);
-		session.addSimpleTransactionForVariable(conceptMapAppVariableName, conceptMapVersionURI, "new concept map version");
+		session.addSimpleTransactionForVariable(session.getWorkspaceVariable(), conceptMapVersionURI, "new concept map version");
 		//ConceptMap newMap = gson.fromJson(json, ConceptMap.class);
 		//System.out.println(newMap.drawables.size());
 	}
@@ -479,8 +498,10 @@ public class SimpleConceptMapApp {
 		System.out.println("checkForAndLoadUpdatedConceptMap test");
 		if (mapPanel.selected != null) return;
 		System.out.println("checkForAndLoadUpdatedConceptMap proceeding");
-		byte[] jsonBytes = session.getResourceInSimpleTransactionForVariable(conceptMapAppVariableName);
-		if (jsonBytes == null || jsonBytes.length == 0) return;
+		// TODO: Fix this so it searches better
+		// byte[] jsonBytes = session.getResourceInSimpleTransactionForVariable(session.getWorkspaceVariable());
+		// if (jsonBytes == null || jsonBytes.length == 0) return;
+		
 		// ByteArrayInputStream inputStream = new ByteArrayInputStream(jsonBytes);
 //		// Note that Jackson ObjectMapper uses Java Reflection which may not run under Web Start or as an Applet due to security issues; would it help to set CAN_OVERRIDE_ACCESS_MODIFIERS to false?
 //		ObjectMapper mapper = new ObjectMapper();
@@ -494,15 +515,103 @@ public class SimpleConceptMapApp {
 //		} catch (IOException e) {
 //			e.printStackTrace();
 //		}
-		ConceptMap newMap = null;
-		try {
-			newMap = new ConceptMap(jsonBytes);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		//ConceptMap newMap = null;
+		//try {
+		//	newMap = new ConceptMap(jsonBytes);
+		//} catch (IOException e) {
+		//	e.printStackTrace();
+		//}
+		ConceptMap newMap = loadLatestConceptMapForUUID(conceptMapUUID);
 		if (newMap != null) {
 			mapPanel.conceptMap = newMap;
 			mapPanel.repaint();
 		}
+	}
+	
+	// TODO: Genericize the code below which is from SimpleNoteTakerApp, so the common patters is common, also to ChatApp
+	// TODO: Should have an index
+	class ConceptMapVersionCollector extends TransactionVisitor {
+		final String encodedContentType = Utility.encodeContentType(ConceptMap.ContentType);
+		ArrayList<ConceptMap> conceptMaps = new ArrayList<ConceptMap>();
+		final int maximumCount;
+		final String documentUUID;
+		
+		ConceptMapVersionCollector(String documentUUID, int maximumCount) {
+			this.documentUUID = documentUUID;
+			this.maximumCount = maximumCount;
+		}
+		
+		// TODO: Maybe should handle removes, too? Tricky as they come before the inserts when recursing
+		
+		public boolean resourceInserted(String resourceUUID) {
+			if (!resourceUUID.endsWith(encodedContentType)) return false;
+			byte[] conceptMapContent = session.getContentForURI(resourceUUID);
+			ConceptMap conceptMap;
+			try {
+				conceptMap = new ConceptMap(conceptMapContent);
+			} catch (IOException e) {
+				e.printStackTrace();
+				return false;
+			}
+			if (conceptMap.documentUUID.equals(documentUUID)) {
+				conceptMaps.add(conceptMap);
+				if (maximumCount > 0 && conceptMaps.size() >= maximumCount) return true;
+			}
+			return false;
+		}
+	}
+	
+	class ConceptMapUUIDCollector extends TransactionVisitor {
+		final String encodedContentType = Utility.encodeContentType(ConceptMap.ContentType);
+		final HashSet<String> conceptMapUUIDs = new HashSet<String>();
+		final int maximumCount;
+		
+		ConceptMapUUIDCollector(int maximumCount) {
+			this.maximumCount = maximumCount;
+		}
+		
+		// TODO: Maybe should handle removes, too? Tricky as they come before the inserts when recursing
+		
+		public boolean resourceInserted(String resourceUUID) {
+			if (!resourceUUID.endsWith(encodedContentType)) return false;
+			byte[] conceptMapContent = session.getContentForURI(resourceUUID);
+			ConceptMap conceptMap;
+			try {
+				conceptMap = new ConceptMap(conceptMapContent);
+			} catch (IOException e) {
+				e.printStackTrace();
+				return false;
+			}
+			conceptMapUUIDs.add(conceptMap.documentUUID);
+			if (maximumCount > 0 && conceptMapUUIDs.size() >= maximumCount) return true;
+			return false;
+		}
+	}
+	
+	// Finds most recently added version of concept map
+	ConceptMap loadLatestConceptMapForUUID(String uuid) {
+		ArrayList<ConceptMap> listItems = loadConceptMapVersionsForUUID(uuid, 1);
+		if (listItems == null || listItems.isEmpty()) return null;
+		return listItems.get(0);
+	}
+	
+	// Finds all added versions of a note up to a maximumCount (use zero for all)
+	ArrayList<ConceptMap> loadConceptMapVersionsForUUID(String uuid, int maximumCount) {
+		// TODO: Should create, maintain, and use an index
+		String transactionURI = session.getVariable(session.getWorkspaceVariable());
+		ConceptMapVersionCollector visitor = new ConceptMapVersionCollector(uuid, maximumCount);
+		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(session, transactionURI, visitor);
+		if (visitor.conceptMaps.isEmpty()) return null;
+		return visitor.conceptMaps;			
+	}
+	
+	// Finds all uuids for notes up to a maximumCount (use zero for all)
+	Set<String> loadConceptMapUUIDs(int maximumCount) {
+		// TODO: Should create, maintain, and use an index
+		String transactionURI = session.getVariable(session.getWorkspaceVariable());
+		ConceptMapUUIDCollector visitor = new ConceptMapUUIDCollector(maximumCount);
+		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(session, transactionURI, visitor);
+		if (visitor.conceptMapUUIDs.isEmpty()) return new HashSet<String>();
+		return visitor.conceptMapUUIDs;			
 	}
 }
