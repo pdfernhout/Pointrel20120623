@@ -13,7 +13,6 @@ public class Session {
 	final private String serverURL;
 	final private ResourcesInterface resourceFiles;
 	final private VariablesInterface variableLogs;
-	final private Indexes indexes;
 	
 	// Ideally these would be final, too; not sure if OK in practice
 	private String user;
@@ -31,7 +30,6 @@ public class Session {
 		this.serverURL = null;
 		this.resourceFiles = new ResourceFiles(pointrelArchiveDirectory);
 		this.variableLogs = new VariableLogs(pointrelArchiveDirectory);
-		this.indexes = new Indexes();
 		this.workspaceVariable = workspaceVariable;
 		this.user = user;
 	}
@@ -42,7 +40,6 @@ public class Session {
 		Server server = new Server(serverURL);
 		this.resourceFiles = server;
 		this.variableLogs = server;
-		this.indexes = new Indexes();
 		this.workspaceVariable = workspaceVariable;
 		this.user = user;
 	}
@@ -75,10 +72,6 @@ public class Session {
 	
 	public String getServerURL() {
 		return serverURL;
-	}
-
-	public Indexes getIndexes() {
-		return indexes;
 	}
 
 	// Resources
