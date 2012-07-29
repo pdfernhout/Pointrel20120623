@@ -18,8 +18,10 @@ import com.fasterxml.jackson.core.JsonToken;
 // TODO: Store count of previous transactions
 public class Transaction {
 	final public static String ContentType = "text/vnd.pointrel.Transaction.json";
-	final public static String Version = "20120623.0.1.0";
+	final public static String Version = "20120623.0.2.0";
 	
+	// TODO: Maybe should not store workspace here but should just check it, and also pass it in when writing?
+	final String workspace;
 	final String timestamp;
 	final String committer;
 	final String comment;
@@ -29,7 +31,8 @@ public class Transaction {
 	final private PriorityQueue<String> removes = new PriorityQueue<String>();
 	final private PriorityQueue<String> includes = new PriorityQueue<String>();
 	
-	public Transaction(String timestamp, String committer, Collection<String> inserts, Collection<String> removes, Collection<String> includes, String comment) {
+	public Transaction(String workspace, String timestamp, String committer, Collection<String> inserts, Collection<String> removes, Collection<String> includes, String comment) {
+		this.workspace = workspace;
 		this.timestamp = timestamp;
 		this.committer = committer;
 		this.comment = comment;
@@ -39,8 +42,8 @@ public class Transaction {
 	}
 	
 	// Convenience constructor
-	public Transaction(String timestamp, String committer, String insert, String remove, String include, String comment) {
-		this(timestamp, committer, nullOrList(insert), nullOrList(remove), nullOrList(include), comment);
+	public Transaction(String workspace, String timestamp, String committer, String insert, String remove, String include, String comment) {
+		this(workspace, timestamp, committer, nullOrList(insert), nullOrList(remove), nullOrList(include), comment);
 	}
 	
 	public static Collection<String> nullOrList(String value) {
@@ -51,8 +54,9 @@ public class Transaction {
 	public Transaction(byte[] content) throws IOException {
 		boolean typeChecked = false;
 		boolean versionChecked = false;
-		String committer_Read = null;
+		String workspace_Read = null;
 		String timestamp_Read = null;
+		String committer_Read = null;
 		String comment_Read = null;
 		
 		JsonFactory jsonFactory = new JsonFactory();
@@ -79,10 +83,12 @@ public class Transaction {
 					throw new RuntimeException("Expected version of " + Version + "  but got : " + version);
 				}
 				versionChecked = true;
-			} else if (fieldName.equals("committer")) {
-				committer_Read = jsonParser.getText();
+			} else if (fieldName.equals("workspace")) {
+				workspace_Read = jsonParser.getText();
 			} else if (fieldName.equals("timestamp")) {
 				timestamp_Read = jsonParser.getText();
+			} else if (fieldName.equals("committer")) {
+				committer_Read = jsonParser.getText();
 			} else if (fieldName.equals("comment")) {
 				comment_Read = jsonParser.getText();
 			} else if (fieldName.equals("inserts")) {
@@ -104,9 +110,23 @@ public class Transaction {
 		if (!versionChecked) {
 			throw new RuntimeException("Expected version of " + Version + "  but no version field");
 		}
+		
+		if (workspace_Read == null) {
+			throw new RuntimeException("Transaction workspace should not be null");
+		}
+		if (timestamp_Read == null) {
+			throw new RuntimeException("Transaction timestamp should not be null");
+		}
+		if (committer_Read == null) {
+			throw new RuntimeException("Transaction committer should not be null");
+		}
+		if (comment_Read == null) {
+			throw new RuntimeException("Transaction comment should not be null");
+		}
 
-		committer = committer_Read;
+		workspace = workspace_Read;
 		timestamp = timestamp_Read;
+		committer = committer_Read;
 		comment = comment_Read;
 	}
 
@@ -128,8 +148,9 @@ public class Transaction {
 			jsonGenerator.writeStartObject();
 			jsonGenerator.writeStringField("type", ContentType);
 			jsonGenerator.writeStringField("version", Version);
-			jsonGenerator.writeStringField("committer", committer);
+			jsonGenerator.writeStringField("workspace", workspace);
 			jsonGenerator.writeStringField("timestamp", timestamp);
+			jsonGenerator.writeStringField("committer", committer);
 			jsonGenerator.writeStringField("comment", comment);
 			// jsonGenerator.writeStringField("signature", signature);
 			writeJSONStringArray(jsonGenerator, "inserts", inserts);

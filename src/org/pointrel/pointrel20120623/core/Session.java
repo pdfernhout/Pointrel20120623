@@ -6,6 +6,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+// TODO: Need to think about encoding of workspace variable names
+
 public class Session {
 	final private File archiveDirectory;
 	final private String serverURL;
@@ -208,7 +210,7 @@ public class Session {
 			throw new IllegalArgumentException("workspace variableName should not be null");
 		}
 		String previousTransaction = this.getLatestTransactionForWorkspace();
-		Transaction transaction = new Transaction(Utility.currentTimestamp(), this.user, uriToAdd, null, previousTransaction, comment);
+		Transaction transaction = new Transaction(workspaceVariable, Utility.currentTimestamp(), this.user, uriToAdd, null, previousTransaction, comment);
 		String newTransactionURI = addContent(transaction.toJSONBytes(), Transaction.ContentType);
 		System.out.println("URI for new transaction: " + newTransactionURI);
 		this.basicSetVariable(workspaceVariable, newTransactionURI, comment);
