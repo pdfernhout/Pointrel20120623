@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.TreeMap;
 
 public class Indexes {
-	// There are unlikely to be many idnexes, but some idnexes may have a lot of data
+	// There are unlikely to be many indexes, but some indexes may have a lot of data
 	// So that is why one is a HashMap and the other a TreeMap
 	HashMap<String,TreeMap<String,ArrayList<String>>> indexes = new HashMap<String,TreeMap<String,ArrayList<String>>>();
 
