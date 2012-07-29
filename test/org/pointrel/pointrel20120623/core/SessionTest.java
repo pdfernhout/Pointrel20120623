@@ -17,7 +17,7 @@ public class SessionTest extends TestCase {
 	public static final String URI_For_This_is_a_test = "pointrel://sha256_c7be1ed902fb8dd4d48997c6452f5d7e509fbcdbe2808b16bcf4edce4c07d14e_14.text%2Fplain";
 	
 	public void testCreation() {
-		Session instance = new Session(UnitTestArchive);
+		Session instance = new Session(UnitTestArchive, Session.DefaultWorkspaceVariable, null);
 		assertNotNull(instance);
 	}
 	
@@ -25,8 +25,7 @@ public class SessionTest extends TestCase {
 		String content = "This is a test";
 		String contentType = "text/plain";
 		String user = "unknown_user@example.com";
-		Session instance = new Session(UnitTestArchive);
-		instance.setUser(user);
+		Session instance = new Session(UnitTestArchive, Session.DefaultWorkspaceVariable, user);
 		String uri = instance.addContent(content, contentType);
 		assertNotNull(uri);
 		assertTrue(Utility.isValidPointrelURI(uri));
@@ -38,7 +37,7 @@ public class SessionTest extends TestCase {
 		//String contentType = "text/plain";
 		//String user = "unknown_user@example.com";
 		String uri = URI_For_This_is_a_test;
-		Session instance = new Session(UnitTestArchive);
+		Session instance = new Session(UnitTestArchive, Session.DefaultWorkspaceVariable, null);
 		byte[] contentRetrieved = instance.getContentForURI(uri);
 		assertNotNull(contentRetrieved);
 		assertTrue(Arrays.equals(content.getBytes(), contentRetrieved));
@@ -49,8 +48,7 @@ public class SessionTest extends TestCase {
 		String newValue = URI_For_This_is_a_test;
 		String user = "unknown_user@example.com";
 		String comment = "unit testing";
-		Session instance = new Session(UnitTestArchive);
-		instance.setUser(user);
+		Session instance = new Session(UnitTestArchive, variableName, user);
 		boolean result = instance.basicSetVariable(variableName, newValue, comment);
 		assertTrue(result);
 	}
@@ -59,7 +57,7 @@ public class SessionTest extends TestCase {
 		String variableName = "test001";
 		String expectedValue = URI_For_This_is_a_test;
 		// String user = "unknown_user@example.com";
-		Session instance = new Session(UnitTestArchive);
+		Session instance = new Session(UnitTestArchive, variableName, null);
 		String value = instance.basicGetVariable(variableName);
 		assertNotNull(value);
 		assertEquals(expectedValue, value);
@@ -71,8 +69,7 @@ public class SessionTest extends TestCase {
 		String contentType = "text/plain";
 		String user = "unknown_user@example.com";
 		String comment = "unit testing";
-		Session instance = new Session(UnitTestArchive);
-		instance.setUser(user);
+		Session instance = new Session(UnitTestArchive, variableName, user);
 		String uri = instance.basicSetContentForVariable(variableName, content.getBytes("utf-8"), contentType, comment, null);
 		assertNotNull(uri);
 		assertTrue(Utility.isValidPointrelURI(uri));
@@ -84,48 +81,12 @@ public class SessionTest extends TestCase {
 		String variableName = "test001";
 		String content = "This is a test";
 		// String user = "unknown_user@example.com";
-		Session instance = new Session(UnitTestArchive);
+		Session instance = new Session(UnitTestArchive, variableName, null);
 		byte[] contentRetrieved = instance.basicGetContentForVariable(variableName);
 		assertNotNull(contentRetrieved);
 		assertTrue(Arrays.equals(content.getBytes(), contentRetrieved));
 	}
-	
-	public void testSettingVariable() {
-		String variableName = "test002";
-		String newValue = "test2";
-		String user = "unknown_user@example.com";
-		String comment ="unit testing";
-		Session instance = new Session(UnitTestArchive);
-		instance.setUser(user);
-		String logEntry = instance.setVariable(variableName, newValue, comment);
-		assertNotNull(logEntry);
-	}
-	
-	public void testGettingVariable() {
-		String variableName = "test002";
-		String expectedValue = "test2";
-		// String user = "unknown_user@example.com";
-		Session instance = new Session(UnitTestArchive);
-		String value = instance.getVariable(variableName);
-		assertNotNull(value);
-		assertEquals(expectedValue, value);
-	}
-	
-	public void testSettingContentForVariable() {
-		String variableName = "test003";
-		//String newValue = "test";
-		String content = "This is a test";
-		String contentType = "text/plain";
-		String user = "unknown_user@example.com";
-		String comment ="unit testing";
-		Session instance = new Session(UnitTestArchive);
-		instance.setUser(user);
-		String uri = instance.setContentForVariable(variableName, content, contentType, comment);
-		assertNotNull(uri);
-		assertTrue(Utility.isValidPointrelURI(uri));
-		assertEquals(URI_For_This_is_a_test, uri);
-	}
-	
+		
 	public void testSplit() {
 		String lines0[] = "".split("\n");
 		assertEquals(1, lines0.length);
@@ -184,41 +145,6 @@ public class SessionTest extends TestCase {
 		assertEquals(3, linesBa.length);
 	}
 	
-	// Requires the testBasicSettingContentForVariable test before this to run first
-	public void testGettingContentForVariable() {
-		String variableName = "test003";
-		//String expectedValue = "test";
-		String content = "This is a test";
-		// String user = "unknown_user@example.com";
-		Session instance = new Session(UnitTestArchive);
-		byte[] contentRetrieved = instance.getContentForVariable(variableName);
-		assertNotNull(contentRetrieved);
-		assertTrue(Arrays.equals(content.getBytes(), contentRetrieved));
-	}
-	
-//	public void testAddingToListForVariable() {
-//		String variableName = "test004";
-//		//String newValue = "test";
-//		String listItem = "List item";
-//		String user = "unknown_user@example.com";
-//		String comment ="unit testing";
-//		Session instance = new Session(UnitTestArchive);
-//		instance.setUser(user);
-//		ArrayList<String> items = instance.addToListForVariable(variableName, listItem, comment);
-//		assertNotNull(items);
-//		assertEquals(listItem, items.get(items.size() - 1));
-//	}
-//	
-//	// Must be run after the previous test which makes a list
-//	public void testGettingListForVariable() {
-//		String variableName = "test004";
-//		String listItem = "List item";
-//		Session instance = new Session(UnitTestArchive);
-//		ArrayList<String> items = instance.getListForVariable(variableName);
-//		assertNotNull(items);
-//		assertEquals(listItem, items.get(items.size() - 1));
-//	}
-	
 	public void testGeneratingUUID() {
 		String uuid = Utility.generateUUID("test two/three");
 		System.out.println("uuid: " + uuid);
@@ -230,20 +156,21 @@ public class SessionTest extends TestCase {
 	public void testAddingTransaction() {
 		// Keeps adding the same file, so not something that would happen in practice
 		String variableName = "test005";
+		String user = "unknown_user@example.com";
 		String uriToAdd = URI_For_This_is_a_test;
 		String comment ="unit testing";
-		Session instance = new Session(UnitTestArchive);
-		String uri = instance.addSimpleTransactionForVariable(variableName, uriToAdd, comment);
+		Session instance = new Session(UnitTestArchive, variableName, user);
+		String uri = instance.addSimpleTransactionToWorkspace(uriToAdd, comment);
 		assertNotNull(uri);
 		
-		String value = instance.getVariable(variableName);
+		String value = instance.basicGetVariable(variableName);
 		assertEquals(uri, value);
 	}
 	
 	public void testVisitingTransactions() {
 		String variableName = "test005";
-		Session instance = new Session(UnitTestArchive);
-		String uri = instance.getVariable(variableName);
+		Session instance = new Session(UnitTestArchive, variableName, null);
+		String uri = instance.basicGetVariable(variableName);
 		final ArrayList<Transaction> transactionsEntered = new ArrayList<Transaction>();
 		final ArrayList<Transaction> transactionsExited = new ArrayList<Transaction>();
 		TransactionVisitor visitor = new TransactionVisitor() {

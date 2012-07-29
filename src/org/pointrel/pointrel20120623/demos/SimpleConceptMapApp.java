@@ -62,8 +62,10 @@ public class SimpleConceptMapApp {
 
 	public static void main(String[] args) {
 		File archive = new File("./PointrelArchive");
-		Session session = new Session(archive);
-		// Session session = new Session("http://twirlip.com/pointrel/");
+		// TODO: Fix user
+		String user = "unknown_user@example.com";
+		Session session = new Session(archive, Session.DefaultWorkspaceVariable, user);
+		// Session session = new Session("http://twirlip.com/pointrel/", Session.DefaultWorkspaceVariable, user);
 		final JFrame frame = new JFrame(FrameNameBase);
 		final SimpleConceptMapApp app = new SimpleConceptMapApp(session);
 		SwingUtilities.invokeLater(new Runnable() {
@@ -487,11 +489,9 @@ public class SimpleConceptMapApp {
 		byte[] jsonBytes = mapPanel.conceptMap.toJSONBytes();
 		System.out.println(new String(jsonBytes));
 		
-		// TODO: Fix user
-		session.setUser("tester1@example.com");
 		String conceptMapVersionURI = session.addContent(jsonBytes, ConceptMap.ContentType);
 		System.out.println("Writing concept map ==============================================");
-		session.addSimpleTransactionForVariable(session.getWorkspaceVariable(), conceptMapVersionURI, "new concept map version");
+		session.addSimpleTransactionToWorkspace(conceptMapVersionURI, "new concept map version");
 		System.out.println("Just wrote new concept map: " + new String(jsonBytes));
 		//ConceptMap newMap = gson.fromJson(json, ConceptMap.class);
 		//System.out.println(newMap.drawables.size());
@@ -602,7 +602,7 @@ public class SimpleConceptMapApp {
 	// Finds all added versions of a concept map up to a maximumCount (use zero for all)
 	ArrayList<ConceptMap> loadConceptMapVersionsForUUID(String uuid, int maximumCount) {
 		// TODO: Should create, maintain, and use an index
-		String transactionURI = session.getVariable(session.getWorkspaceVariable());
+		String transactionURI = session.getLatestTransactionForWorkspace();
 		ConceptMapVersionCollector visitor = new ConceptMapVersionCollector(uuid, maximumCount);
 		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(session, transactionURI, visitor);
 		if (visitor.conceptMaps.isEmpty()) return null;
@@ -612,7 +612,7 @@ public class SimpleConceptMapApp {
 	// Finds all uuids for concept maps up to a maximumCount (use zero for all)
 	Set<String> loadConceptMapUUIDs(int maximumCount) {
 		// TODO: Should create, maintain, and use an index
-		String transactionURI = session.getVariable(session.getWorkspaceVariable());
+		String transactionURI = session.getLatestTransactionForWorkspace();
 		ConceptMapUUIDCollector visitor = new ConceptMapUUIDCollector(maximumCount);
 		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(session, transactionURI, visitor);
 		if (visitor.conceptMapUUIDs.isEmpty()) return new HashSet<String>();

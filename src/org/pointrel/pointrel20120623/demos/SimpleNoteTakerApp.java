@@ -45,9 +45,10 @@ public class SimpleNoteTakerApp {
 
 	public static void main(String[] args) {
 		File archive = new File("./PointrelArchive");
-		Session session = new Session(archive);
-		// Session session = new Session("http://twirlip.com/pointrel/");
-		session.setUser("tester1");
+		// TODO: Fix user
+		String user = "unknown_user@example.com";
+		Session session = new Session(archive, Session.DefaultWorkspaceVariable, user);
+		// Session session = new Session("http://twirlip.com/pointrel/", Session.DefaultWorkspaceVariable, user);
 		final JFrame frame = new JFrame(FrameNameBase);
 		final SimpleNoteTakerApp app = new SimpleNoteTakerApp(session);
 		SwingUtilities.invokeLater(new Runnable() {
@@ -199,7 +200,7 @@ public class SimpleNoteTakerApp {
 	
 	void saveItem(NoteVersion listItem) {
 		String noteURI = session.addContent(listItem.toJSONBytes(), NoteVersion.ContentType);
-		session.addSimpleTransactionForVariable(session.getWorkspaceVariable(), noteURI, "Updating note");
+		session.addSimpleTransactionToWorkspace(noteURI, "Updating note");
 	}
 	
 	class NoteVersionCollector extends TransactionVisitor {
@@ -270,7 +271,7 @@ public class SimpleNoteTakerApp {
 	// Finds all added versions of a note up to a maximumCount (use zero for all)
 	ArrayList<NoteVersion> loadNoteVersionsForUUID(String uuid, int maximumCount) {
 		// TODO: Should create, maintain, and use an index
-		String transactionURI = session.getVariable(session.getWorkspaceVariable());
+		String transactionURI = session.getLatestTransactionForWorkspace();
 		NoteVersionCollector visitor = new NoteVersionCollector(uuid, maximumCount);
 		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(session, transactionURI, visitor);
 		if (visitor.listItems.isEmpty()) return null;
@@ -280,7 +281,7 @@ public class SimpleNoteTakerApp {
 	// Finds all uuids for notes up to a maximumCount (use zero for all)
 	Set<String> loadNoteUUIDs(int maximumCount) {
 		// TODO: Should create, maintain, and use an index
-		String transactionURI = session.getVariable(session.getWorkspaceVariable());
+		String transactionURI = session.getLatestTransactionForWorkspace();
 		NoteUUIDCollector visitor = new NoteUUIDCollector(maximumCount);
 		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(session, transactionURI, visitor);
 		if (visitor.noteUUIDs.isEmpty()) return new HashSet<String>();

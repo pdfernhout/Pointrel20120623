@@ -61,7 +61,7 @@ public class ResourceViewerUtilityApp {
 	
 	public static void main(String[] args) {
 		File archive = new File("./PointrelArchive");
-		Session session = new Session(archive);
+		Session session = new Session(archive, Session.DefaultWorkspaceVariable, null);
 		// Session session = new Session("http://twirlip.com/pointrel/");
 		final JFrame frame = new JFrame(FrameNameBase);
 		final ResourceViewerUtilityApp app = new ResourceViewerUtilityApp(session);
@@ -228,7 +228,7 @@ public class ResourceViewerUtilityApp {
 		System.out.println("You selected: " + selection);
 		if (selection == null || selection.length() == 0) return;
 	
-		String uri = session.basicGetVariable(selection);
+		String uri = session.getVariable(selection);
 		if (uri == null) JOptionPane.showMessageDialog(getTop(), "Variable not found: " + selection);
 		this.addOrSelectURI(uri);
 	}
@@ -247,7 +247,7 @@ public class ResourceViewerUtilityApp {
 		if (returnedValue == JFileChooser.APPROVE_OPTION) {
 			File archive = fileChooser.getSelectedFile();
 			// TODO: Need some way to confirm this is an archive
-			session = new Session(archive);
+			session = new Session(archive, Session.DefaultWorkspaceVariable, null);
 			updateFrameTitle();
 			resourceListModel.clear();
 			addSomeResourceItemsToList();

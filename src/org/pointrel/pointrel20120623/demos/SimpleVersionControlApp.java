@@ -53,8 +53,10 @@ public class SimpleVersionControlApp {
 	
 	public static void main(String[] args) {
 		File archive = new File("./PointrelArchive");
-		Session session = new Session(archive);
-		// Session session = new Session("http://twirlip.com/pointrel/");
+		// TODO: Fix user
+		String user = "unknown_user@example.com";
+		Session session = new Session(archive, Session.DefaultWorkspaceVariable, user);
+		// Session session = new Session("http://twirlip.com/pointrel/",  Session.DefaultWorkspaceVariable, user);
 		final JFrame frame = new JFrame(FrameNameBase);
 		final SimpleVersionControlApp app = new SimpleVersionControlApp(session);
 		SwingUtilities.invokeLater(new Runnable() {

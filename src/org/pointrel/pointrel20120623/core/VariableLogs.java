@@ -39,6 +39,9 @@ public class VariableLogs implements VariablesInterface {
 		if (variableName == null) {
 			throw new IllegalArgumentException("variableName should not be null");
 		}
+		if (user == null) {
+			throw new IllegalArgumentException("user should not be null");
+		}
 		// check if value is OK
 		if (!Utility.isValidPointrelURIOrNull(value)) {
 			throw new RuntimeException("New variable value not pointrel reference or null: " + previous);

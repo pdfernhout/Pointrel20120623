@@ -23,8 +23,7 @@ public class WorkspaceTest extends TestCase {
 		instance.workspaceDescription = "This is a test workspace used by the unit tests";
 		
 		String user = "unknown_user@example.com";
-		Session session = new Session(UnitTestArchive);
-		session.setUser(user);
+		Session session = new Session(UnitTestArchive, uuid, user);
 		instance.store(session);
 	}
 }

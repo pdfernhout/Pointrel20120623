@@ -8,7 +8,7 @@ import junit.framework.TestCase;
 public class TransactionTest extends TestCase {
 
 	public void testToJSON() throws UnsupportedEncodingException {
-		Transaction instance = new Transaction(Utility.currentTimestamp(), "tester@example.com", "url", null, null);
+		Transaction instance = new Transaction(Utility.currentTimestamp(), "tester@example.com", "url", null, null, "unit testing");
 		byte[] bytes = instance.toJSONBytes();
 		assertNotNull(bytes);
 		assertTrue(bytes.length > 0);
@@ -18,7 +18,7 @@ public class TransactionTest extends TestCase {
 
 	public void testFromJSON() throws IOException {
 		String timestamp = Utility.currentTimestamp();
-		Transaction instance = new Transaction(timestamp, "tester@example.com", "url", null, null);
+		Transaction instance = new Transaction(timestamp, "tester@example.com", "url", null, null, "unit testing");
 		byte[] bytes = instance.toJSONBytes();
 		Transaction instance2 = new Transaction(bytes);
 		

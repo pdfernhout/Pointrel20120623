@@ -22,23 +22,25 @@ public class Transaction {
 	
 	final String timestamp;
 	final String committer;
+	final String comment;
 	
 	// Make these PriorityQueues to keep them sorted so one canonical representation of a transaction
 	final private PriorityQueue<String> inserts = new PriorityQueue<String>();
 	final private PriorityQueue<String> removes = new PriorityQueue<String>();
 	final private PriorityQueue<String> includes = new PriorityQueue<String>();
 	
-	public Transaction(String timestamp, String committer, Collection<String> inserts, Collection<String> removes, Collection<String> includes) {
+	public Transaction(String timestamp, String committer, Collection<String> inserts, Collection<String> removes, Collection<String> includes, String comment) {
 		this.timestamp = timestamp;
 		this.committer = committer;
+		this.comment = comment;
 		if (inserts != null) this.inserts.addAll(inserts);
 		if (removes != null) this.removes.addAll(removes);
 		if (includes != null) this.includes.addAll(includes);
 	}
 	
 	// Convenience constructor
-	public Transaction(String timestamp, String committer, String insert, String remove, String include) {
-		this(timestamp, committer, nullOrList(insert), nullOrList(remove), nullOrList(include));
+	public Transaction(String timestamp, String committer, String insert, String remove, String include, String comment) {
+		this(timestamp, committer, nullOrList(insert), nullOrList(remove), nullOrList(include), comment);
 	}
 	
 	public static Collection<String> nullOrList(String value) {
@@ -51,6 +53,7 @@ public class Transaction {
 		boolean versionChecked = false;
 		String committer_Read = null;
 		String timestamp_Read = null;
+		String comment_Read = null;
 		
 		JsonFactory jsonFactory = new JsonFactory();
 		ByteArrayInputStream inputStream = new ByteArrayInputStream(content);
@@ -80,6 +83,8 @@ public class Transaction {
 				committer_Read = jsonParser.getText();
 			} else if (fieldName.equals("timestamp")) {
 				timestamp_Read = jsonParser.getText();
+			} else if (fieldName.equals("comment")) {
+				comment_Read = jsonParser.getText();
 			} else if (fieldName.equals("inserts")) {
 				parseURIArray(jsonParser, inserts);
 			} else if (fieldName.equals("removes")) {
@@ -102,6 +107,7 @@ public class Transaction {
 
 		committer = committer_Read;
 		timestamp = timestamp_Read;
+		comment = comment_Read;
 	}
 
 	private void parseURIArray(JsonParser jsonParser, PriorityQueue<String> queue) throws IOException, JsonParseException {
@@ -124,6 +130,7 @@ public class Transaction {
 			jsonGenerator.writeStringField("version", Version);
 			jsonGenerator.writeStringField("committer", committer);
 			jsonGenerator.writeStringField("timestamp", timestamp);
+			jsonGenerator.writeStringField("comment", comment);
 			// jsonGenerator.writeStringField("signature", signature);
 			writeJSONStringArray(jsonGenerator, "inserts", inserts);
 			writeJSONStringArray(jsonGenerator, "removes", removes);
@@ -151,6 +158,10 @@ public class Transaction {
 	
 	public String getTimestamp() {
 		return timestamp;
+	}
+	
+	public String getComment() {
+		return comment;
 	}
 	
 	public ArrayList<String> getIncludes() {

@@ -11,7 +11,6 @@ import org.pointrel.pointrel20120623.core.Utility;
 
 public class GenericRecordManager<T extends GenericRecord> {
 	public final Session session;
-	public final String variableName;
 	public final String version;
 	public final String contentType;
 	public final String contentTypeEncoded;
@@ -20,9 +19,8 @@ public class GenericRecordManager<T extends GenericRecord> {
 	public final HashSet<String> fieldNames;
 	// TODO: could have flags for whether OK to read extra fields or OK to have missing fields, and whether to only write declared fields
 	
-	public GenericRecordManager(Session session, String variableName, String contentType, String version, String[] fieldNames) {
+	public GenericRecordManager(Session session, String contentType, String version, String[] fieldNames) {
 		this.session = session;
-		this.variableName = variableName;
 		this.contentType = contentType;
 		this.contentTypeEncoded = Utility.encodeContentType(contentType);
 		this.version = version;
@@ -31,7 +29,7 @@ public class GenericRecordManager<T extends GenericRecord> {
 	
 	public void saveRecord(T record) {
 		String recordURI = session.addContent(record.toJSONBytes(), contentType);
-		session.addSimpleTransactionForVariable(variableName, recordURI, "Adding " + this.contentTypeEncoded + " for " + record.context);
+		session.addSimpleTransactionToWorkspace(recordURI, "Adding " + this.contentTypeEncoded + " for " + record.context);
 	}
 	
 	public class RecordCollector extends TransactionVisitor {
@@ -81,7 +79,7 @@ public class GenericRecordManager<T extends GenericRecord> {
 	// Finds all added records for a contextID up to a maximumCount (use zero for all)
 	public ArrayList<T> loadRecordsForContextID(String contextID, int maximumCount) {
 		// TODO: Should create, maintain, and use an index
-		String transactionURI = session.getVariable(variableName);
+		String transactionURI = session.getLatestTransactionForWorkspace();
 		RecordCollector visitor = new RecordCollector(contextID, maximumCount);
 		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(session, transactionURI, visitor);
 		if (visitor.records.isEmpty()) return null;
