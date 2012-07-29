@@ -1,7 +1,9 @@
-package org.pointrel.pointrel20120623.core;
+package org.pointrel.pointrel20120623.indexing;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+
+import org.pointrel.pointrel20120623.core.Session;
 
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -28,7 +30,7 @@ public class Workspace {
 	String timestampWhenStored;
 	String userWhoStored;
 	
-	Indexes indexes = new Indexes();
+	ResourceIndexerManager resourceIndexerManager = new ResourceIndexerManager();
 	
 	public Workspace(String uuid) {
 		this.workspaceUUID = uuid;

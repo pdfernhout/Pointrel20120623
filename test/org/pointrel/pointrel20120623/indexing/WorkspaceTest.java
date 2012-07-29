@@ -1,6 +1,9 @@
-package org.pointrel.pointrel20120623.core;
+package org.pointrel.pointrel20120623.indexing;
 
 import java.io.File;
+
+import org.pointrel.pointrel20120623.core.Session;
+import org.pointrel.pointrel20120623.indexing.Workspace;
 
 import junit.framework.TestCase;
 
