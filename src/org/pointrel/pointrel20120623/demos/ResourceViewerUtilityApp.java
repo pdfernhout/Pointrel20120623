@@ -43,9 +43,9 @@ public class ResourceViewerUtilityApp {
 	JPanel listPanel = new JPanel();
 	JList resourceList = new JList(resourceListModel);
 	JScrollPane resourceListScrollPane = new JScrollPane(resourceList);
-	JButton chooseResourceButton = new JButton("Choose resource...");
-	JButton chooseWorkspaceButton = new JButton("Choose workspace...");
-	JButton chooseArchiveButton = new JButton("Choose archive...");
+	JButton chooseResourceButton = new JButton("Choose resource ...");
+	JButton chooseWorkspaceButton = new JButton("Choose workspace ...");
+	JButton chooseArchiveButton = new JButton("Choose archive ...");
 	JPanel contentPanel = new JPanel();
 	JTextField uriTextField = new JTextField();
 	JTextField contentTypeTextField = new JTextField();
