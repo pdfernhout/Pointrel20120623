@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.pointrel.pointrel20120623.core.Session;
 import org.pointrel.pointrel20120623.core.Utility;
 
+// TODO: Some version of this could use SQLite to store index on disk rather than reload
 public abstract class AbstractResourceIndexer implements ResourceIndexer {
 	String contentTypeEncoded;
 
