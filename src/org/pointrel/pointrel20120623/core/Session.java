@@ -52,18 +52,10 @@ public class Session {
 	}
 
 	public String getUser() {
-		// TODO: Temporary for debugging?
-		if (user == null) {
-			throw new RuntimeException("user was not set");
-		}
 		return user;
 	}
 	
 	public String getWorkspaceVariable() {
-		// TODO: Temporary for debugging?
-		if (workspaceVariable == null) {
-			throw new RuntimeException("Workspace variable was not set");
-		}
 		return workspaceVariable;
 	}
 
@@ -189,13 +181,19 @@ public class Session {
 
 	// Public access for when poking around in other workspaces for utilities or for copying
 	public String getVariable(String variableName) {
+		if (variableName == null) {
+			throw new IllegalArgumentException("variableName should not be null");
+		}
 		return basicGetVariable(variableName);
 	}
 
 	// Transactions
 	
 	public String getLatestTransactionForWorkspace() {
-		return this.basicGetVariable(getWorkspaceVariable());
+		if (workspaceVariable == null) {
+			throw new IllegalArgumentException("workspace variableName should not be null");
+		}
+		return this.basicGetVariable(workspaceVariable);
 	}
 	
 	// This does not check if user might be out-of-date in multi-user system
@@ -206,11 +204,14 @@ public class Session {
 		if (comment == null) {
 			throw new IllegalArgumentException("comment should not be null");
 		}
+		if (workspaceVariable == null) {
+			throw new IllegalArgumentException("workspace variableName should not be null");
+		}
 		String previousTransaction = this.getLatestTransactionForWorkspace();
 		Transaction transaction = new Transaction(Utility.currentTimestamp(), this.user, uriToAdd, null, previousTransaction, comment);
 		String newTransactionURI = addContent(transaction.toJSONBytes(), Transaction.ContentType);
 		System.out.println("URI for new transaction: " + newTransactionURI);
-		this.basicSetVariable(this.getWorkspaceVariable(), newTransactionURI, comment);
+		this.basicSetVariable(workspaceVariable, newTransactionURI, comment);
 		return newTransactionURI;
 	}
 }

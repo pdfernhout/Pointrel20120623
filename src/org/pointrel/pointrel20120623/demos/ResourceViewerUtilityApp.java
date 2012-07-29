@@ -44,7 +44,7 @@ public class ResourceViewerUtilityApp {
 	JList resourceList = new JList(resourceListModel);
 	JScrollPane resourceListScrollPane = new JScrollPane(resourceList);
 	JButton chooseResourceButton = new JButton("Choose resource...");
-	JButton chooseVariableButton = new JButton("Choose variable...");
+	JButton chooseWorkspaceButton = new JButton("Choose workspace...");
 	JButton chooseArchiveButton = new JButton("Choose archive...");
 	JPanel contentPanel = new JPanel();
 	JTextField uriTextField = new JTextField();
@@ -58,6 +58,8 @@ public class ResourceViewerUtilityApp {
 	public ResourceViewerUtilityApp(Session session) {
 		this.session = session;
 	}
+	
+	// TODO: Need to be able to set user ID to save resources
 	
 	public static void main(String[] args) {
 		File archive = new File("./PointrelArchive");
@@ -79,7 +81,7 @@ public class ResourceViewerUtilityApp {
 	public JPanel openGUI() {		
 		listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
 		listPanel.add(resourceListScrollPane);
-		listPanel.add(chooseVariableButton);
+		listPanel.add(chooseWorkspaceButton);
 		listPanel.add(chooseResourceButton);
 		listPanel.add(chooseArchiveButton);
 		
@@ -128,17 +130,17 @@ public class ResourceViewerUtilityApp {
 		this.setTitle(FrameNameBase + " on: " + session.getArchiveDirectory().getAbsolutePath());
 	}
 
-	private void addSomeResourceItemsToList() {
-		resourceListModel.addElement("pointrel://sha256_c7be1ed902fb8dd4d48997c6452f5d7e509fbcdbe2808b16bcf4edce4c07d14e_14.text%2Fplain");
-		resourceListModel.addElement("pointrel://sha256_a05205672fded582132281b10998abd96c6450b6d4bac5319ed8031a643af0f7_136.text%2Fpointrel-transaction");
-	}
+//	private void addSomeResourceItemsToList() {
+//		add("pointrel://sha256_c7be1ed902fb8dd4d48997c6452f5d7e509fbcdbe2808b16bcf4edce4c07d14e_14.text%2Fplain");
+//		resourceListModel.addElement("pointrel://sha256_a05205672fded582132281b10998abd96c6450b6d4bac5319ed8031a643af0f7_136.text%2Fpointrel-transaction");
+//	}
 
 	private void hookupActions() {
 		chooseResourceButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {chooseResourceButtonPressed(); }});
 
-		chooseVariableButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {chooseVariableButtonPressed(); }});
+		chooseWorkspaceButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {chooseWorkspaceButtonPressed(); }});
 
 		chooseArchiveButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {chooseArchiveButtonPressed(); }});
@@ -166,11 +168,24 @@ public class ResourceViewerUtilityApp {
         String uri = contentTextArea.getSelectedText() + new StringTokenizer(text, " \t\n\r\f,\"").nextToken();
         System.out.println("uri: " + uri); 
         if (Utility.isValidPointrelURI(uri)) {
-        		addOrSelectURI(uri);
+        	addOrSelectURI(uri);
         }
+	}
+	
+	boolean isUserIDEmpty() {
+		if (session.getUser() != null && session.getUser().length() != 0) return false;
+		String userID = JOptionPane.showInputDialog(getTop(), "Enter user ID");
+		if (userID == null || userID.length() == 0) return true;
+		session.setUser(userID);
+		return false;
+		
 	}
 
 	protected void saveResourceButtonPressed() {
+		if (isUserIDEmpty()) {
+			JOptionPane.showMessageDialog(getTop(), "User ID must be specified in order to store a resource");
+			return;
+		}
 		String contentType = contentTypeTextField.getText();
 		String contentString = contentTextArea.getText();
 		String uri = session.addContent(contentString, contentType);
@@ -216,7 +231,7 @@ public class ResourceViewerUtilityApp {
 		this.addOrSelectURI(uri);
 	}
 	
-	protected void chooseVariableButtonPressed() {
+	protected void chooseWorkspaceButtonPressed() {
 		// String variableName = JOptionPane.showInputDialog(frame, "Variable?");
 		//if (variableName == null || variableName.length() == 0) {
 		//	return;
@@ -224,12 +239,12 @@ public class ResourceViewerUtilityApp {
 		
 		ArrayList<String> variableNames = session.getAllVariableNames();
 		String[] variableNamesArray = (String[]) variableNames.toArray(new String[variableNames.size()]);
-		String selection = (String) JOptionPane.showInputDialog(getTop(), "Please choose a variable", "Variables", JOptionPane.QUESTION_MESSAGE, null, variableNamesArray, null);
+		String selection = (String) JOptionPane.showInputDialog(getTop(), "Please choose a workspace", "Workspaces", JOptionPane.QUESTION_MESSAGE, null, variableNamesArray, null);
 		System.out.println("You selected: " + selection);
 		if (selection == null || selection.length() == 0) return;
 	
 		String uri = session.getVariable(selection);
-		if (uri == null) JOptionPane.showMessageDialog(getTop(), "Variable not found: " + selection);
+		if (uri == null) JOptionPane.showMessageDialog(getTop(), "Workspace not found: " + selection);
 		this.addOrSelectURI(uri);
 	}
 	
@@ -250,7 +265,7 @@ public class ResourceViewerUtilityApp {
 			session = new Session(archive, Session.DefaultWorkspaceVariable, null);
 			updateFrameTitle();
 			resourceListModel.clear();
-			addSomeResourceItemsToList();
+			// addSomeResourceItemsToList();
 		}
 	}
 }
