@@ -313,20 +313,6 @@ public class SimpleConceptMapApp {
 		void setLocation(Point point) {
 			rectangle.setLocation(point);
 		}
-		
-//		@SuppressWarnings("unchecked")
-//		JSONObject asJSONObject() {
-//			JSONObject result = new JSONObject();
-//			result.put("uuid", uuid);
-//			result.put("concept", concept);
-//			result.put("rectangle.x", rectangle.x);
-//			result.put("rectangle.y", rectangle.y);
-//			result.put("rectangle.width", rectangle.width);
-//			result.put("rectangle.height", rectangle.height);
-//			result.put("rectangle", rectangle);
-//			result.put("color", color);
-//			return result;
-//		}
 	}
 	
 	@SuppressWarnings("serial") 
@@ -410,7 +396,6 @@ public class SimpleConceptMapApp {
 		public void mouseMoved(MouseEvent arg0) {
 			// Do nothing			
 		}
-		
 	}
 
 	public JPanel openGUI() {
@@ -449,43 +434,8 @@ public class SimpleConceptMapApp {
 		mapPanel.repaint();
 		saveConceptMap();
 	}
-
-//	@SuppressWarnings("unchecked")
-//	private void saveConceptMap() {
-//		JSONArray list = new JSONArray();
-//		for (ConceptDrawable drawable: mapPanel.drawables) {
-//			list.add(drawable.asJSONObject());
-//		}
-//		StringWriter out = new StringWriter();
-//		try {
-//			JSONValue.writeJSONString(list, out);
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//		String jsonText = out.toString();
-//		System.out.println(jsonText);
-//	}
 	
 	private void saveConceptMap() {
-		// Note that Jackson ObjectMapper uses Java Reflection which may not run under Web Start or as an Applet due to security issues; would it help to set CAN_OVERRIDE_ACCESS_MODIFIERS to false?
-//		ObjectMapper mapper = new ObjectMapper();
-//		ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
-//		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-//		try {
-//			writer.writeValue(outputStream, mapPanel.conceptMap);
-//		} catch (JsonGenerationException e) {
-//			e.printStackTrace();
-//		} catch (JsonMappingException e) {
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//		String jsonString = null;
-//		try {
-//			jsonString = outputStream.toString("utf-8");
-//		} catch (UnsupportedEncodingException e) {
-//			e.printStackTrace();
-//		}
 		byte[] jsonBytes = mapPanel.conceptMap.toJSONBytes();
 		System.out.println(new String(jsonBytes));
 		
@@ -493,7 +443,6 @@ public class SimpleConceptMapApp {
 		System.out.println("Writing concept map ==============================================");
 		session.addSimpleTransactionToWorkspace(conceptMapVersionURI, "new concept map version");
 		System.out.println("Just wrote new concept map: " + new String(jsonBytes));
-		//ConceptMap newMap = gson.fromJson(json, ConceptMap.class);
 		//System.out.println(newMap.drawables.size());
 	}
 	
@@ -501,29 +450,7 @@ public class SimpleConceptMapApp {
 		System.out.println("checkForAndLoadUpdatedConceptMap test");
 		if (mapPanel.selected != null) return;
 		System.out.println("checkForAndLoadUpdatedConceptMap proceeding");
-		// TODO: Fix this so it searches better
-		// byte[] jsonBytes = session.getResourceInSimpleTransactionForVariable(session.getWorkspaceVariable());
-		// if (jsonBytes == null || jsonBytes.length == 0) return;
-		
-		// ByteArrayInputStream inputStream = new ByteArrayInputStream(jsonBytes);
-//		// Note that Jackson ObjectMapper uses Java Reflection which may not run under Web Start or as an Applet due to security issues; would it help to set CAN_OVERRIDE_ACCESS_MODIFIERS to false?
-//		ObjectMapper mapper = new ObjectMapper();
-//		ConceptMap newMap = null;
-//		try {
-//			newMap = mapper.readValue(inputStream, ConceptMap.class);
-//		} catch (JsonParseException e) {
-//			e.printStackTrace();
-//		} catch (JsonMappingException e) {
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-		//ConceptMap newMap = null;
-		//try {
-		//	newMap = new ConceptMap(jsonBytes);
-		//} catch (IOException e) {
-		//	e.printStackTrace();
-		//}
+
 		ConceptMap newMap = loadLatestConceptMapForUUID(conceptMapUUIDForApp);
 		if (newMap != null) {
 			mapPanel.conceptMap = newMap;
