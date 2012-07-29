@@ -27,8 +27,6 @@ import org.jdesktop.swingworker.SwingWorker;
 import org.pointrel.pointrel20120623.core.Session;
 import org.pointrel.pointrel20120623.core.TransactionVisitor;
 import org.pointrel.pointrel20120623.core.Utility;
-import org.pointrel.pointrel20120623.demos.SimpleConceptMapApp.ConceptMap;
-
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
