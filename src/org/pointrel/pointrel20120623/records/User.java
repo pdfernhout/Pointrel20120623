@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.pointrel.pointrel20120623.core;
+package org.pointrel.pointrel20120623.records;
 
 class User {
 	final public static String ContentType = "text/vnd.pointrel.User.json";
