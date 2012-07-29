@@ -26,6 +26,9 @@ public class Transaction {
 	final String committer;
 	final String comment;
 	
+	// Need uri here so can check it when visiting transactions, but it is awkward to have it final
+	String uri = null;
+
 	// Make these PriorityQueues to keep them sorted so one canonical representation of a transaction
 	final private PriorityQueue<String> inserts = new PriorityQueue<String>();
 	final private PriorityQueue<String> removes = new PriorityQueue<String>();
@@ -195,5 +198,13 @@ public class Transaction {
 	
 	public ArrayList<String> getRemoves() {
 		return new ArrayList<String>(removes);
+	}
+	
+	public String getURI() {
+		return uri;
+	}
+
+	public void setURI(String uri) {
+		this.uri = uri;
 	}
 }

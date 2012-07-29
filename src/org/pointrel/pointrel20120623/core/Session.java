@@ -216,6 +216,8 @@ public class Session {
 		String previousTransaction = this.getLatestTransactionForWorkspace();
 		Transaction transaction = new Transaction(workspaceVariable, Utility.currentTimestamp(), this.user, uriToAdd, null, previousTransaction, comment);
 		String newTransactionURI = addContent(transaction.toJSONBytes(), Transaction.ContentType);
+		// TODO: This next line is not needed as the transaction is not kept around
+		transaction.setURI(newTransactionURI);
 		System.out.println("URI for new transaction: " + newTransactionURI);
 		this.basicSetVariable(workspaceVariable, newTransactionURI, comment);
 		return newTransactionURI;
