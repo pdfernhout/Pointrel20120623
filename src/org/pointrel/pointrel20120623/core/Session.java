@@ -88,7 +88,7 @@ public class Session {
 		}
 		try {
 			String uri = resourceFiles.addContent(content, contentType, user, precalculatedURI);
-			resourceCache.put(uri, content);
+			putResourceInCache(content, uri);
 			return uri;
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -107,11 +107,12 @@ public class Session {
 	}
 
 	public byte[] getContentForURI(String uri) {
+		byte[] result = getResourceFromCacheOrNull(uri);
+		if (result != null) {
+			return result;
+		}
 		try {
-			byte[] result = resourceCache.get(uri);
-			if (result == null) {
-				result = resourceFiles.getContentForURI(uri);
-			} 
+			result = resourceFiles.getContentForURI(uri);
 			return result;
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -129,7 +130,17 @@ public class Session {
 			e.printStackTrace();
 			return null;
 		}
-	}	
+	}
+	
+	// Resource caching
+
+	protected void putResourceInCache(byte[] content, String uri) {
+		resourceCache.put(uri, content);
+	}
+
+	protected byte[] getResourceFromCacheOrNull(String uri) {
+		return resourceCache.get(uri);
+	}
 	
 	// Variables
 	
