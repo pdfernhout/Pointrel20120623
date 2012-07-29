@@ -1,0 +1,22 @@
+2012-07-29 
+
+Thinking about removing the layer of variable change objects. 
+It mostly duplicates what is in the transactions. 
+The variables support rollback.
+They also support more generic use of the system (without transactions).
+But, in practice, they add an extra level of clutter.
+I could add them back in if essential at some point.
+For now, when something is backed out, realizing I could add a new transaction that represents that.
+So, a new transaction would have a later date and a committer, but no records added or removed.
+The new transaction would just have a different transaction that it depends on.
+It could maybe have a comment as a rollback.
+So, thinking, for transactions, should add support for a comment (like variable changes have now).
+And should add support for what workspace the transaction is for.
+I had not wanted to put a variable name or workspace into transactions.
+But, I'm thinking that maybe it is best.
+Perhaps a UUID for a workspace?
+So, a workspace is essentially a set of transactions?
+Still, not 100% sure.
+Was thinking about it this morning.
+
+Updated design document to see how it look. Looks OK.
