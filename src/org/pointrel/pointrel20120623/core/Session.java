@@ -214,7 +214,7 @@ public class Session {
 			throw new IllegalArgumentException("workspace variableName should not be null");
 		}
 		String previousTransaction = this.getLatestTransactionForWorkspace();
-		Transaction transaction = new Transaction(workspaceVariable, Utility.currentTimestamp(), this.user, uriToAdd, null, previousTransaction, comment);
+		Transaction transaction = new Transaction(workspaceVariable, Utility.currentTimestamp(), this.user, uriToAdd, previousTransaction, comment);
 		String newTransactionURI = addContent(transaction.toJSONBytes(), Transaction.ContentType);
 		// TODO: This next line is not needed as the transaction is not kept around
 		transaction.setURI(newTransactionURI);

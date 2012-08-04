@@ -4,7 +4,6 @@
 package org.pointrel.pointrel20120623.core;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 public class TransactionVisitor {
 	
@@ -29,7 +28,14 @@ public class TransactionVisitor {
 	}
 
 	/*
-	 * Visits all resources in a list (or tree) of transactions recursively
+	 * Visits all resources in a list (or tree) of transactions recursively.
+	 * TODO: Could be made into a loop now that only one previous is allowed per Transaction.
+	 * TODO: May want to change how this works so that it always calls visitor methods 
+	 * for resources and transactions in the order that they were added,
+	 * perhaps noting for resources if they were later deleted, or, alternatively,
+	 * might have two visitors, one that visits from the most recent and one that
+	 * visits from the bottom up; note that some applications depend on the current
+	 * behavior to find the latest transaction about the application.
 	 * 
 	 * @param session The session to get data from
 	 * @param transactionURI The transcario to start from
@@ -62,11 +68,12 @@ public class TransactionVisitor {
 				if (visitor.resourceInserted(resourceURI)) return true;
 			}
 			
-			ArrayList<String> includes = transaction.getIncludes();
+			String previousTransactionURI = transaction.getPrevious();
 			
-			for (String transactionURIForRecursing: includes) {
-				if (visitAllResourcesInATransactionTreeRecursively(session, transactionURIForRecursing, visitor)) return true;
+			if (previousTransactionURI != null) {
+				if (visitAllResourcesInATransactionTreeRecursively(session, previousTransactionURI, visitor)) return true;
 			}
+
 			if (visitor.transactionExited(transaction)) return true;
 		}
 		return false;
