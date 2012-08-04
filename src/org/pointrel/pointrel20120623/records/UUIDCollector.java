@@ -8,6 +8,7 @@ import java.util.Set;
 import org.pointrel.pointrel20120623.core.Session;
 import org.pointrel.pointrel20120623.core.TransactionVisitor;
 import org.pointrel.pointrel20120623.core.Utility;
+import org.pointrel.pointrel20120623.core.Workspace;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
@@ -64,11 +65,11 @@ public class UUIDCollector extends TransactionVisitor {
 	}
 	
 	// Finds all uuids for items up to a maximumCount (use zero for all)
-	static public Set<String> collectUUIDs(Session session, String contentType, int maximumCount) {
+	static public Set<String> collectUUIDs(Workspace workspace, String contentType, int maximumCount) {
 		// TODO: Should create, maintain, and use an index
-		UUIDCollector collector = new UUIDCollector(session, contentType, maximumCount);
-		String transactionURI = session.getLatestTransactionForWorkspace();
-		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(session, transactionURI, collector);
+		UUIDCollector collector = new UUIDCollector(workspace.getSession(), contentType, maximumCount);
+		String transactionURI = workspace.getLatestTransactionForWorkspace();
+		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace.getSession(), transactionURI, collector);
 		if (collector.uuids.isEmpty()) return new HashSet<String>();
 		return new HashSet<String>(collector.uuids);			
 	}

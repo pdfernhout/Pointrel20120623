@@ -7,6 +7,7 @@ import java.util.HashMap;
 import org.pointrel.pointrel20120623.core.Session;
 import org.pointrel.pointrel20120623.core.Transaction;
 import org.pointrel.pointrel20120623.core.TransactionVisitor;
+import org.pointrel.pointrel20120623.core.Workspace;
 
 public class ResourceIndexerManager {
 	private HashMap<String,ResourceIndexer> resourceIndexers = new HashMap<String,ResourceIndexer>();
@@ -46,9 +47,9 @@ public class ResourceIndexerManager {
 		}
 	}
 	
-	public void loadNewTransactions(Session session) {
+	public void loadNewTransactions(Workspace workspace) {
 		// TODO: A big issue is if there was some kind of branching (or deletion) where some objects would change; ignoring that for now
-		String currentTransaction = session.getLatestTransactionForWorkspace();
+		String currentTransaction = workspace.getLatestTransactionForWorkspace();
 		
 		// Check if there is nothing to do
 		if (currentTransaction == null) {
@@ -59,7 +60,7 @@ public class ResourceIndexerManager {
 		
 		// There must be some difference
 		NewTransactionChecker visitor = new NewTransactionChecker(currentTransaction);
-		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(session, currentTransaction, visitor);
+		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace.getSession(), currentTransaction, visitor);
 		
 		if (currentTransaction != null && !visitor.foundLastTransactionProcessed) {
 			throw new RuntimeException("Unfinished: No support for branching");
@@ -69,7 +70,7 @@ public class ResourceIndexerManager {
 		Collections.reverse(visitor.unprocessedTransactions);
 		for (Transaction transaction: visitor.unprocessedTransactions) {
 			// TODO: Ignoring deletions for now
-			loadNewTransaction(session, transaction);
+			loadNewTransaction(workspace.getSession(), transaction);
 		}
 	}
 

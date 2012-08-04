@@ -3,12 +3,13 @@ package org.pointrel.pointrel20120623.core;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
+
 import junit.framework.TestCase;
 
 public class TransactionTest extends TestCase {
 
 	public void testToJSON() throws UnsupportedEncodingException {
-		Transaction instance = new Transaction(Session.DefaultWorkspaceVariable, Utility.currentTimestamp(), "tester@example.com", "url", null, null, "unit testing");
+		Transaction instance = new Transaction(Workspace.DefaultWorkspaceVariable, Utility.currentTimestamp(), "tester@example.com", "url", null, "unit testing");
 		byte[] bytes = instance.toJSONBytes();
 		assertNotNull(bytes);
 		assertTrue(bytes.length > 0);
@@ -18,7 +19,7 @@ public class TransactionTest extends TestCase {
 
 	public void testFromJSON() throws IOException {
 		String timestamp = Utility.currentTimestamp();
-		Transaction instance = new Transaction(Session.DefaultWorkspaceVariable, timestamp, "tester@example.com", "url", null, null, "unit testing");
+		Transaction instance = new Transaction(Workspace.DefaultWorkspaceVariable, timestamp, "tester@example.com", "url", null, "unit testing");
 		byte[] bytes = instance.toJSONBytes();
 		Transaction instance2 = new Transaction(bytes);
 		
@@ -27,7 +28,7 @@ public class TransactionTest extends TestCase {
 		
 		assertEquals(0, instance2.getRemoves().size());
 		
-		assertEquals(0, instance2.getIncludes().size());
+		assertEquals(null, instance2.getPrevious());
 		
 		assertEquals("tester@example.com", instance2.getCommitter());
 		

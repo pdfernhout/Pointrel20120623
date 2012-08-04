@@ -16,12 +16,12 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
-import org.pointrel.pointrel20120623.core.Session;
+import org.pointrel.pointrel20120623.core.Workspace;
 
 public class SimpleVersionControlApp {
 	public static String FrameNameBase = "Simple Version Control App";
 	
-	Session session;
+	Workspace workspace;
 
 	JPanel appPanel = new JPanel();
 	final JSplitPane splitPane1 = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
@@ -47,15 +47,15 @@ public class SimpleVersionControlApp {
 	final JButton loadCurrentFilesButton = new JButton("Load current files");
 	final JButton commitButton = new JButton("Commit");
 	
-	public SimpleVersionControlApp(Session session) {
-		this.session = session;
+	public SimpleVersionControlApp(Workspace workspace) {
+		this.workspace = workspace;
 	}
 	
 	public static void main(String[] args) {
 		File archive = new File("./PointrelArchive");
 		// TODO: Fix user
 		String user = "unknown_user@example.com";
-		Session session = new Session(archive, Session.DefaultWorkspaceVariable, user);
+		Workspace session = new Workspace(archive, Workspace.DefaultWorkspaceVariable, user);
 		// Session session = new Session("http://twirlip.com/pointrel/",  Session.DefaultWorkspaceVariable, user);
 		final JFrame frame = new JFrame(FrameNameBase);
 		final SimpleVersionControlApp app = new SimpleVersionControlApp(session);

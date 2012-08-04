@@ -39,7 +39,7 @@ public class GenericRecord {
 	}
 	
 	public GenericRecord(GenericRecordManager<GenericRecord> recordFactory, String context, String document, Map<String,String> values) {
-		this(recordFactory, context, document, Utility.currentTimestamp(), recordFactory.session.getUser(), values);
+		this(recordFactory, context, document, Utility.currentTimestamp(), recordFactory.workspace.getUser(), values);
 	}
 	
 	@SuppressWarnings({ "rawtypes" })

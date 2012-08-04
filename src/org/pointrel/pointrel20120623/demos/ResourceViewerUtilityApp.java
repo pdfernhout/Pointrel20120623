@@ -63,7 +63,7 @@ public class ResourceViewerUtilityApp {
 	
 	public static void main(String[] args) {
 		File archive = new File("./PointrelArchive");
-		Session session = new Session(archive, Session.DefaultWorkspaceVariable, null);
+		Session session = new Session(archive, null);
 		// Session session = new Session("http://twirlip.com/pointrel/");
 		final JFrame frame = new JFrame(FrameNameBase);
 		final ResourceViewerUtilityApp app = new ResourceViewerUtilityApp(session);
@@ -262,7 +262,7 @@ public class ResourceViewerUtilityApp {
 		if (returnedValue == JFileChooser.APPROVE_OPTION) {
 			File archive = fileChooser.getSelectedFile();
 			// TODO: Need some way to confirm this is an archive
-			session = new Session(archive, Session.DefaultWorkspaceVariable, null);
+			session = new Session(archive, null);
 			updateFrameTitle();
 			resourceListModel.clear();
 			// addSomeResourceItemsToList();

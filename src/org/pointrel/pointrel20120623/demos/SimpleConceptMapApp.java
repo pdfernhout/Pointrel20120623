@@ -27,9 +27,9 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
-import org.pointrel.pointrel20120623.core.Session;
 import org.pointrel.pointrel20120623.core.TransactionVisitor;
 import org.pointrel.pointrel20120623.core.Utility;
+import org.pointrel.pointrel20120623.core.Workspace;
 
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -44,7 +44,7 @@ import com.fasterxml.jackson.core.JsonToken;
 public class SimpleConceptMapApp {
 	public static String FrameNameBase = "Simple Concept Map";
 	
-	Session session;
+	Workspace workspace;
 	
 	JPanel appPanel = new JPanel();
 	ConceptMapPanel mapPanel = new ConceptMapPanel();
@@ -56,18 +56,18 @@ public class SimpleConceptMapApp {
 	public static String DefaultConceptMapUUID = "default_concept_map";
 	public String conceptMapUUIDForApp = DefaultConceptMapUUID;
 	
-	public SimpleConceptMapApp(Session session) {
-		this.session = session;
+	public SimpleConceptMapApp(Workspace workspace) {
+		this.workspace = workspace;
 	}
 
 	public static void main(String[] args) {
 		File archive = new File("./PointrelArchive");
 		// TODO: Fix user
 		String user = "unknown_user@example.com";
-		Session session = new Session(archive, Session.DefaultWorkspaceVariable, user);
-		// Session session = new Session("http://twirlip.com/pointrel/", Session.DefaultWorkspaceVariable, user);
+		Workspace workspace = new Workspace(archive, Workspace.DefaultWorkspaceVariable, user);
+		// Workspace workspace = new Workspace("http://twirlip.com/pointrel/", Workspace.DefaultWorkspaceVariable, user);
 		final JFrame frame = new JFrame(FrameNameBase);
-		final SimpleConceptMapApp app = new SimpleConceptMapApp(session);
+		final SimpleConceptMapApp app = new SimpleConceptMapApp(workspace);
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				JPanel appPanel = app.openGUI();
@@ -439,9 +439,9 @@ public class SimpleConceptMapApp {
 		byte[] jsonBytes = mapPanel.conceptMap.toJSONBytes();
 		System.out.println(new String(jsonBytes));
 		
-		String conceptMapVersionURI = session.addContent(jsonBytes, ConceptMap.ContentType);
+		String conceptMapVersionURI = workspace.addContent(jsonBytes, ConceptMap.ContentType);
 		System.out.println("Writing concept map ==============================================");
-		session.addSimpleTransactionToWorkspace(conceptMapVersionURI, "new concept map version");
+		workspace.addSimpleTransactionToWorkspace(conceptMapVersionURI, "new concept map version");
 		System.out.println("Just wrote new concept map: " + new String(jsonBytes));
 		//System.out.println(newMap.drawables.size());
 	}
@@ -475,7 +475,7 @@ public class SimpleConceptMapApp {
 		
 		public boolean resourceInserted(String resourceUUID) {
 			if (!resourceUUID.endsWith(encodedContentType)) return false;
-			byte[] conceptMapContent = session.getContentForURI(resourceUUID);
+			byte[] conceptMapContent = workspace.getContentForURI(resourceUUID);
 			ConceptMap conceptMap;
 			try {
 				conceptMap = new ConceptMap(conceptMapContent);
@@ -505,7 +505,7 @@ public class SimpleConceptMapApp {
 		
 		public boolean resourceInserted(String resourceUUID) {
 			if (!resourceUUID.endsWith(encodedContentType)) return false;
-			byte[] conceptMapContent = session.getContentForURI(resourceUUID);
+			byte[] conceptMapContent = workspace.getContentForURI(resourceUUID);
 			ConceptMap conceptMap;
 			try {
 				conceptMap = new ConceptMap(conceptMapContent);
@@ -529,9 +529,9 @@ public class SimpleConceptMapApp {
 	// Finds all added versions of a concept map up to a maximumCount (use zero for all)
 	ArrayList<ConceptMap> loadConceptMapVersionsForUUID(String uuid, int maximumCount) {
 		// TODO: Should create, maintain, and use an index
-		String transactionURI = session.getLatestTransactionForWorkspace();
+		String transactionURI = workspace.getLatestTransactionForWorkspace();
 		ConceptMapVersionCollector visitor = new ConceptMapVersionCollector(uuid, maximumCount);
-		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(session, transactionURI, visitor);
+		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace.getSession(), transactionURI, visitor);
 		if (visitor.conceptMaps.isEmpty()) return null;
 		return visitor.conceptMaps;			
 	}
@@ -539,9 +539,9 @@ public class SimpleConceptMapApp {
 	// Finds all uuids for concept maps up to a maximumCount (use zero for all)
 	Set<String> loadConceptMapUUIDs(int maximumCount) {
 		// TODO: Should create, maintain, and use an index
-		String transactionURI = session.getLatestTransactionForWorkspace();
+		String transactionURI = workspace.getLatestTransactionForWorkspace();
 		ConceptMapUUIDCollector visitor = new ConceptMapUUIDCollector(maximumCount);
-		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(session, transactionURI, visitor);
+		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace.getSession(), transactionURI, visitor);
 		if (visitor.conceptMapUUIDs.isEmpty()) return new HashSet<String>();
 		return visitor.conceptMapUUIDs;			
 	}

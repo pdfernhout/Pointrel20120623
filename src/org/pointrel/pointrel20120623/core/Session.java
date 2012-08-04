@@ -14,33 +14,27 @@ public class Session {
 	final private ResourcesInterface resourceFiles;
 	final private VariablesInterface variableLogs;
 	
-	// Ideally these would be final, too; not sure if OK in practice
+	// Ideally this would be final, too; not sure if OK in practice
 	private String user;
-	private String workspaceVariable;
 	
 	HashMap<String, byte[]> resourceCache = new HashMap<String, byte[]>();
 	
-	// TODO: Really should remove this and maybe not have a default?
-	public static String DefaultWorkspaceVariable = "default_workspace";
-	
 	// Constructors
 	
-	public Session(File pointrelArchiveDirectory, String workspaceVariable, String user) {
+	public Session(File pointrelArchiveDirectory, String user) {
 		this.archiveDirectory = pointrelArchiveDirectory;
 		this.serverURL = null;
 		this.resourceFiles = new ResourceFiles(pointrelArchiveDirectory);
 		this.variableLogs = new VariableLogs(pointrelArchiveDirectory);
-		this.workspaceVariable = workspaceVariable;
 		this.user = user;
 	}
 	
-	public Session(String serverURL, String workspaceVariable, String user) {
+	public Session(String serverURL, String user) {
 		this.archiveDirectory = null;
 		this.serverURL = serverURL;
 		Server server = new Server(serverURL);
 		this.resourceFiles = server;
 		this.variableLogs = server;
-		this.workspaceVariable = workspaceVariable;
 		this.user = user;
 	}
 
@@ -52,14 +46,6 @@ public class Session {
 
 	public String getUser() {
 		return user;
-	}
-	
-	public String getWorkspaceVariable() {
-		return workspaceVariable;
-	}
-
-	public void setWorkspaceVariable(String workspaceVariable) {
-		this.workspaceVariable = workspaceVariable;
 	}
 
 	public ArrayList<String> getAllVariableNames() {
@@ -195,7 +181,7 @@ public class Session {
 
 	// Transactions
 	
-	public String getLatestTransactionForWorkspace() {
+	public String getLatestTransactionForWorkspace(String workspaceVariable) {
 		if (workspaceVariable == null) {
 			throw new IllegalArgumentException("workspace variableName should not be null");
 		}
@@ -203,7 +189,7 @@ public class Session {
 	}
 	
 	// This does not check if user might be out-of-date in multi-user system
-	public String addSimpleTransactionToWorkspace(String uriToAdd, String comment) {
+	public String addSimpleTransactionToWorkspace(String workspaceVariable, String uriToAdd, String comment) {
 		if (uriToAdd == null) {
 			throw new IllegalArgumentException("uriToAdd should not be null");
 		}
@@ -213,7 +199,7 @@ public class Session {
 		if (workspaceVariable == null) {
 			throw new IllegalArgumentException("workspace variableName should not be null");
 		}
-		String previousTransaction = this.getLatestTransactionForWorkspace();
+		String previousTransaction = this.getLatestTransactionForWorkspace(workspaceVariable);
 		Transaction transaction = new Transaction(workspaceVariable, Utility.currentTimestamp(), this.user, uriToAdd, previousTransaction, comment);
 		String newTransactionURI = addContent(transaction.toJSONBytes(), Transaction.ContentType);
 		// TODO: This next line is not needed as the transaction is not kept around

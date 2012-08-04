@@ -24,9 +24,10 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 import org.jdesktop.swingworker.SwingWorker;
-import org.pointrel.pointrel20120623.core.Session;
 import org.pointrel.pointrel20120623.core.TransactionVisitor;
 import org.pointrel.pointrel20120623.core.Utility;
+import org.pointrel.pointrel20120623.core.Workspace;
+
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -41,10 +42,10 @@ public class SimpleChatApp {
 		File archive = new File("./PointrelArchive");
 		// TODO: fix user
 		String user = "unknown_user@example.com";
-		Session session = new Session(archive, Session.DefaultWorkspaceVariable, user);
-		//Session session = new Session("http://twirlip.com/pointrel/", Session.DefaultWorkspaceVariable, user);
+		Workspace workspace = new Workspace(archive, Workspace.DefaultWorkspaceVariable, user);
+		//Workspace workspace = new Workspace("http://twirlip.com/pointrel/", Workspace.DefaultWorkspaceVariable, user);
 		final JFrame frame = new JFrame(FrameNameBase);
-		final SimpleChatApp app = new SimpleChatApp(session);
+		final SimpleChatApp app = new SimpleChatApp(workspace);
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				JPanel appPanel = app.openGUI();
@@ -60,7 +61,7 @@ public class SimpleChatApp {
 	
 	public int maxChatItemsOnRefresh = 20;
 	
-	Session session;
+	Workspace workspace;
 	
 	JPanel appPanel = new JPanel();
 	
@@ -209,7 +210,7 @@ public class SimpleChatApp {
 		
 		public boolean resourceInserted(String resourceUUID) {
 			if (!resourceUUID.endsWith(encodedContentType)) return false;
-			byte[] chatItemContent = session.getContentForURI(resourceUUID);
+			byte[] chatItemContent = workspace.getContentForURI(resourceUUID);
 			if (chatItemContent == null) {
 				System.out.println("content not found for chat item: " + resourceUUID);
 			}
@@ -228,16 +229,16 @@ public class SimpleChatApp {
 		}
 	}
 	
-	public SimpleChatApp(Session session) {
-		this.session = session;
+	public SimpleChatApp(Workspace workspace) {
+		this.workspace = workspace;
 	}
 
 	// Finds all chat items for a chatUUID up to a maximumCount (use zero for all)
 	ArrayList<ChatItem> loadChatItemsForUUID(String uuid, int maximumCount) {
 		// TODO: Should create, maintain, and use an index
-		String transactionURI = session.getLatestTransactionForWorkspace();
+		String transactionURI = workspace.getLatestTransactionForWorkspace();
 		ChatItemCollector visitor = new ChatItemCollector(uuid, maximumCount);
-		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(session, transactionURI, visitor);
+		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace.getSession(), transactionURI, visitor);
 		return visitor.chatItems;			
 	}
 
@@ -326,7 +327,7 @@ public class SimpleChatApp {
 			return;
 		}
 		// TODO: Fix user somehow in app
-		session.setUser(userID);
+		workspace.setUser(userID);
 		final String message = sendTextField.getText();
 		sendTextField.setText("");
 		sendButton.setEnabled(false);
@@ -337,8 +338,8 @@ public class SimpleChatApp {
 				String timestamp = Utility.currentTimestamp();
 					
 				ChatItem chatItem = new ChatItem(chatAppChatUUID, timestamp, userID, message);
-				String uri = session.addContent(chatItem.toJSONBytes(), ChatItem.ContentType);
-				session.addSimpleTransactionToWorkspace(uri, "New chat message");
+				String uri = workspace.addContent(chatItem.toJSONBytes(), ChatItem.ContentType);
+				workspace.addSimpleTransactionToWorkspace(uri, "New chat message");
 				
 				if (message.equals("test100")) {
 					test100();
@@ -372,8 +373,8 @@ public class SimpleChatApp {
 			String message = "Testing... #" + i + " " + timestamp;
 			
 			final ChatItem chatItem = new ChatItem(chatAppChatUUID, timestamp, "TestUserID", message);
-			String uri = session.addContent(chatItem.toJSONBytes(), ChatItem.ContentType);
-			session.addSimpleTransactionToWorkspace(uri, "New chat message");
+			String uri = workspace.addContent(chatItem.toJSONBytes(), ChatItem.ContentType);
+			workspace.addSimpleTransactionToWorkspace(uri, "New chat message");
 			
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() {

@@ -26,9 +26,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import org.pointrel.pointrel20120623.core.Session;
 import org.pointrel.pointrel20120623.core.TransactionVisitor;
 import org.pointrel.pointrel20120623.core.Utility;
+import org.pointrel.pointrel20120623.core.Workspace;
 
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -47,10 +47,10 @@ public class SimpleNoteTakerApp {
 		File archive = new File("./PointrelArchive");
 		// TODO: Fix user
 		String user = "unknown_user@example.com";
-		Session session = new Session(archive, Session.DefaultWorkspaceVariable, user);
-		// Session session = new Session("http://twirlip.com/pointrel/", Session.DefaultWorkspaceVariable, user);
+		Workspace workspace = new Workspace(archive, Workspace.DefaultWorkspaceVariable, user);
+		// Workspace workspace = new Workspace("http://twirlip.com/pointrel/", Workspace.DefaultWorkspaceVariable, user);
 		final JFrame frame = new JFrame(FrameNameBase);
-		final SimpleNoteTakerApp app = new SimpleNoteTakerApp(session);
+		final SimpleNoteTakerApp app = new SimpleNoteTakerApp(workspace);
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				JPanel appPanel = app.openGUI();
@@ -65,7 +65,7 @@ public class SimpleNoteTakerApp {
 	final public static String FrameNameBase = "Simple Note Taker App";
 	final public static String applicationIdentifier = SimpleNoteTakerApp.class.getCanonicalName();
 	
-	Session session;
+	Workspace workspace;
 	
 	JPanel appPanel = new JPanel();
 	
@@ -82,8 +82,8 @@ public class SimpleNoteTakerApp {
 	JButton saveNoteButton = new JButton("Save note");
 	JPanel listPanel = new JPanel();
 	
-	public SimpleNoteTakerApp(Session session) {
-		this.session = session;
+	public SimpleNoteTakerApp(Workspace workspace) {
+		this.workspace = workspace;
 	}
 	
 	class NoteVersion {
@@ -199,8 +199,8 @@ public class SimpleNoteTakerApp {
 	}
 	
 	void saveItem(NoteVersion listItem) {
-		String noteURI = session.addContent(listItem.toJSONBytes(), NoteVersion.ContentType);
-		session.addSimpleTransactionToWorkspace(noteURI, "Updating note");
+		String noteURI = workspace.addContent(listItem.toJSONBytes(), NoteVersion.ContentType);
+		workspace.addSimpleTransactionToWorkspace(noteURI, "Updating note");
 	}
 	
 	class NoteVersionCollector extends TransactionVisitor {
@@ -218,7 +218,7 @@ public class SimpleNoteTakerApp {
 		
 		public boolean resourceInserted(String resourceUUID) {
 			if (!resourceUUID.endsWith(encodedContentType)) return false;
-			byte[] noteVersionContent = session.getContentForURI(resourceUUID);
+			byte[] noteVersionContent = workspace.getContentForURI(resourceUUID);
 			NoteVersion noteVersion;
 			try {
 				noteVersion = new NoteVersion(noteVersionContent);
@@ -247,7 +247,7 @@ public class SimpleNoteTakerApp {
 		
 		public boolean resourceInserted(String resourceUUID) {
 			if (!resourceUUID.endsWith(encodedContentType)) return false;
-			byte[] noteVersionContent = session.getContentForURI(resourceUUID);
+			byte[] noteVersionContent = workspace.getContentForURI(resourceUUID);
 			NoteVersion noteVersion;
 			try {
 				noteVersion = new NoteVersion(noteVersionContent);
@@ -271,9 +271,9 @@ public class SimpleNoteTakerApp {
 	// Finds all added versions of a note up to a maximumCount (use zero for all)
 	ArrayList<NoteVersion> loadNoteVersionsForUUID(String uuid, int maximumCount) {
 		// TODO: Should create, maintain, and use an index
-		String transactionURI = session.getLatestTransactionForWorkspace();
+		String transactionURI = workspace.getLatestTransactionForWorkspace();
 		NoteVersionCollector visitor = new NoteVersionCollector(uuid, maximumCount);
-		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(session, transactionURI, visitor);
+		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace.getSession(), transactionURI, visitor);
 		if (visitor.listItems.isEmpty()) return null;
 		return visitor.listItems;			
 	}
@@ -281,9 +281,9 @@ public class SimpleNoteTakerApp {
 	// Finds all uuids for notes up to a maximumCount (use zero for all)
 	Set<String> loadNoteUUIDs(int maximumCount) {
 		// TODO: Should create, maintain, and use an index
-		String transactionURI = session.getLatestTransactionForWorkspace();
+		String transactionURI = workspace.getLatestTransactionForWorkspace();
 		NoteUUIDCollector visitor = new NoteUUIDCollector(maximumCount);
-		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(session, transactionURI, visitor);
+		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace.getSession(), transactionURI, visitor);
 		if (visitor.noteUUIDs.isEmpty()) return new HashSet<String>();
 		return visitor.noteUUIDs;			
 	}
@@ -366,11 +366,11 @@ public class SimpleNoteTakerApp {
 		}
 		String uuid = Utility.generateUUID(applicationIdentifier);
 		String timestamp = Utility.currentTimestamp();
-		String userID = session.getUser();
+		String userID = workspace.getUser();
 		NoteVersion listItem = new NoteVersion(uuid, timestamp, userID, newTitle, "");
 		saveItem(listItem);
 		// String comment = "new note";
-		// session.addToListForVariable(applicationIdentifier, listItem.documentUUID, comment);
+		// workspace.addToListForVariable(applicationIdentifier, listItem.documentUUID, comment);
 		noteListModel.addElement(listItem);
 		noteList.setSelectedIndex(noteListModel.size() - 1);
 	}
@@ -391,7 +391,7 @@ public class SimpleNoteTakerApp {
 			return;
 		}
 		String timestamp = Utility.currentTimestamp();
-		String userID = session.getUser();
+		String userID = workspace.getUser();
 		NoteVersion newListItem = new NoteVersion(oldListItem.documentUUID, timestamp, userID, newTitle, oldListItem.noteBody);
 		noteListModel.set(index, newListItem);
 		saveItem(newListItem);
@@ -425,7 +425,7 @@ public class SimpleNoteTakerApp {
 		NoteVersion oldListItem = (NoteVersion) noteListModel.get(index);
 		String text = textArea.getText();
 		String timestamp = Utility.currentTimestamp();
-		String userID = session.getUser();
+		String userID = workspace.getUser();
 		NoteVersion newListItem = new NoteVersion(oldListItem.documentUUID, timestamp, userID, oldListItem.title, text);
 		noteListModel.set(index, newListItem);
 		saveItem(newListItem);

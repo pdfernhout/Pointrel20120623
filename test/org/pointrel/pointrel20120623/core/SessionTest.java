@@ -17,7 +17,7 @@ public class SessionTest extends TestCase {
 	public static final String URI_For_This_is_a_test = "pointrel://sha256_c7be1ed902fb8dd4d48997c6452f5d7e509fbcdbe2808b16bcf4edce4c07d14e_14.text%2Fplain";
 	
 	public void testCreation() {
-		Session instance = new Session(UnitTestArchive, Session.DefaultWorkspaceVariable, null);
+		Session instance = new Session(UnitTestArchive, null);
 		assertNotNull(instance);
 	}
 	
@@ -25,7 +25,7 @@ public class SessionTest extends TestCase {
 		String content = "This is a test";
 		String contentType = "text/plain";
 		String user = "unknown_user@example.com";
-		Session instance = new Session(UnitTestArchive, Session.DefaultWorkspaceVariable, user);
+		Session instance = new Session(UnitTestArchive, user);
 		String uri = instance.addContent(content, contentType);
 		assertNotNull(uri);
 		assertTrue(Utility.isValidPointrelURI(uri));
@@ -37,7 +37,7 @@ public class SessionTest extends TestCase {
 		//String contentType = "text/plain";
 		//String user = "unknown_user@example.com";
 		String uri = URI_For_This_is_a_test;
-		Session instance = new Session(UnitTestArchive, Session.DefaultWorkspaceVariable, null);
+		Session instance = new Session(UnitTestArchive, null);
 		byte[] contentRetrieved = instance.getContentForURI(uri);
 		assertNotNull(contentRetrieved);
 		assertTrue(Arrays.equals(content.getBytes(), contentRetrieved));
@@ -48,7 +48,7 @@ public class SessionTest extends TestCase {
 		String newValue = URI_For_This_is_a_test;
 		String user = "unknown_user@example.com";
 		String comment = "unit testing";
-		Session instance = new Session(UnitTestArchive, variableName, user);
+		Session instance = new Session(UnitTestArchive, user);
 		boolean result = instance.basicSetVariable(variableName, newValue, comment);
 		assertTrue(result);
 	}
@@ -57,7 +57,7 @@ public class SessionTest extends TestCase {
 		String variableName = "test001";
 		String expectedValue = URI_For_This_is_a_test;
 		// String user = "unknown_user@example.com";
-		Session instance = new Session(UnitTestArchive, variableName, null);
+		Session instance = new Session(UnitTestArchive, null);
 		String value = instance.basicGetVariable(variableName);
 		assertNotNull(value);
 		assertEquals(expectedValue, value);
@@ -69,7 +69,7 @@ public class SessionTest extends TestCase {
 		String contentType = "text/plain";
 		String user = "unknown_user@example.com";
 		String comment = "unit testing";
-		Session instance = new Session(UnitTestArchive, variableName, user);
+		Session instance = new Session(UnitTestArchive, user);
 		String uri = instance.basicSetContentForVariable(variableName, content.getBytes("utf-8"), contentType, comment, null);
 		assertNotNull(uri);
 		assertTrue(Utility.isValidPointrelURI(uri));
@@ -81,7 +81,7 @@ public class SessionTest extends TestCase {
 		String variableName = "test001";
 		String content = "This is a test";
 		// String user = "unknown_user@example.com";
-		Session instance = new Session(UnitTestArchive, variableName, null);
+		Session instance = new Session(UnitTestArchive, null);
 		byte[] contentRetrieved = instance.basicGetContentForVariable(variableName);
 		assertNotNull(contentRetrieved);
 		assertTrue(Arrays.equals(content.getBytes(), contentRetrieved));
@@ -159,8 +159,8 @@ public class SessionTest extends TestCase {
 		String user = "unknown_user@example.com";
 		String uriToAdd = URI_For_This_is_a_test;
 		String comment ="unit testing";
-		Session instance = new Session(UnitTestArchive, variableName, user);
-		String uri = instance.addSimpleTransactionToWorkspace(uriToAdd, comment);
+		Session instance = new Session(UnitTestArchive, user);
+		String uri = instance.addSimpleTransactionToWorkspace(variableName, uriToAdd, comment);
 		assertNotNull(uri);
 		
 		String value = instance.basicGetVariable(variableName);
@@ -169,7 +169,7 @@ public class SessionTest extends TestCase {
 	
 	public void testVisitingTransactions() {
 		String variableName = "test005";
-		Session instance = new Session(UnitTestArchive, variableName, null);
+		Session instance = new Session(UnitTestArchive, null);
 		String uri = instance.basicGetVariable(variableName);
 		final ArrayList<Transaction> transactionsEntered = new ArrayList<Transaction>();
 		final ArrayList<Transaction> transactionsExited = new ArrayList<Transaction>();

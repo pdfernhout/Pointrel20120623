@@ -14,7 +14,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
  * collect, share, organize, discuss, and publish information.
  * Each unique workspace is defined by a unique UUID.
  */
-public class Workspace {
+public class WorkspaceVersion {
 	final public static String ContentType = "text/vnd.pointrel.Workspace.json";
 	final public static String Version = "20120623.0.1.0";
 	
@@ -32,7 +32,7 @@ public class Workspace {
 	
 	ResourceIndexerManager resourceIndexerManager = new ResourceIndexerManager();
 	
-	public Workspace(String uuid) {
+	public WorkspaceVersion(String uuid) {
 		this.workspaceUUID = uuid;
 	}
 
