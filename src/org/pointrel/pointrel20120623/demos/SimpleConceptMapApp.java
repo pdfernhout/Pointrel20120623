@@ -441,7 +441,7 @@ public class SimpleConceptMapApp {
 		
 		String conceptMapVersionURI = workspace.addContent(jsonBytes, ConceptMap.ContentType);
 		System.out.println("Writing concept map ==============================================");
-		workspace.addSimpleTransactionToWorkspace(conceptMapVersionURI, "new concept map version");
+		workspace.addSimpleTransaction(conceptMapVersionURI, "new concept map version");
 		System.out.println("Just wrote new concept map: " + new String(jsonBytes));
 		//System.out.println(newMap.drawables.size());
 	}
@@ -529,7 +529,7 @@ public class SimpleConceptMapApp {
 	// Finds all added versions of a concept map up to a maximumCount (use zero for all)
 	ArrayList<ConceptMap> loadConceptMapVersionsForUUID(String uuid, int maximumCount) {
 		// TODO: Should create, maintain, and use an index
-		String transactionURI = workspace.getLatestTransactionForWorkspace();
+		String transactionURI = workspace.getLatestTransaction();
 		ConceptMapVersionCollector visitor = new ConceptMapVersionCollector(uuid, maximumCount);
 		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace, transactionURI, visitor);
 		if (visitor.conceptMaps.isEmpty()) return null;
@@ -539,7 +539,7 @@ public class SimpleConceptMapApp {
 	// Finds all uuids for concept maps up to a maximumCount (use zero for all)
 	Set<String> loadConceptMapUUIDs(int maximumCount) {
 		// TODO: Should create, maintain, and use an index
-		String transactionURI = workspace.getLatestTransactionForWorkspace();
+		String transactionURI = workspace.getLatestTransaction();
 		ConceptMapUUIDCollector visitor = new ConceptMapUUIDCollector(maximumCount);
 		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace, transactionURI, visitor);
 		if (visitor.conceptMapUUIDs.isEmpty()) return new HashSet<String>();

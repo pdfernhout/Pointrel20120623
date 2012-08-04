@@ -67,7 +67,7 @@ public class UUIDCollector extends TransactionVisitor {
 	static public Set<String> collectUUIDs(Workspace workspace, String contentType, int maximumCount) {
 		// TODO: Should create, maintain, and use an index
 		UUIDCollector collector = new UUIDCollector(workspace, contentType, maximumCount);
-		String transactionURI = workspace.getLatestTransactionForWorkspace();
+		String transactionURI = workspace.getLatestTransaction();
 		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace, transactionURI, collector);
 		if (collector.uuids.isEmpty()) return new HashSet<String>();
 		return new HashSet<String>(collector.uuids);			

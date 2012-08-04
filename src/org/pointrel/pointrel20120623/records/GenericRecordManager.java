@@ -29,7 +29,7 @@ public class GenericRecordManager<T extends GenericRecord> {
 	
 	public void saveRecord(T record) {
 		String recordURI = workspace.addContent(record.toJSONBytes(), contentType);
-		workspace.addSimpleTransactionToWorkspace(recordURI, "Adding " + this.contentTypeEncoded + " for " + record.context);
+		workspace.addSimpleTransaction(recordURI, "Adding " + this.contentTypeEncoded + " for " + record.context);
 	}
 	
 	public class RecordCollector extends TransactionVisitor {
@@ -79,7 +79,7 @@ public class GenericRecordManager<T extends GenericRecord> {
 	// Finds all added records for a contextID up to a maximumCount (use zero for all)
 	public ArrayList<T> loadRecordsForContextID(String contextID, int maximumCount) {
 		// TODO: Should create, maintain, and use an index
-		String transactionURI = workspace.getLatestTransactionForWorkspace();
+		String transactionURI = workspace.getLatestTransaction();
 		RecordCollector visitor = new RecordCollector(contextID, maximumCount);
 		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace, transactionURI, visitor);
 		if (visitor.records.isEmpty()) return null;

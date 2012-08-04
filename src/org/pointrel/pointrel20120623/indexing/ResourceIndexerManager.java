@@ -48,7 +48,7 @@ public class ResourceIndexerManager {
 	
 	public void loadNewTransactions(Workspace workspace) {
 		// TODO: A big issue is if there was some kind of branching (or deletion) where some objects would change; ignoring that for now
-		String currentTransaction = workspace.getLatestTransactionForWorkspace();
+		String currentTransaction = workspace.getLatestTransaction();
 		
 		// Check if there is nothing to do
 		if (currentTransaction == null) {

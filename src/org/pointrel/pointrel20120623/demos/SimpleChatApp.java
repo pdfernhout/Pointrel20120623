@@ -236,7 +236,7 @@ public class SimpleChatApp {
 	// Finds all chat items for a chatUUID up to a maximumCount (use zero for all)
 	ArrayList<ChatItem> loadChatItemsForUUID(String uuid, int maximumCount) {
 		// TODO: Should create, maintain, and use an index
-		String transactionURI = workspace.getLatestTransactionForWorkspace();
+		String transactionURI = workspace.getLatestTransaction();
 		ChatItemCollector visitor = new ChatItemCollector(uuid, maximumCount);
 		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace, transactionURI, visitor);
 		return visitor.chatItems;			
@@ -339,7 +339,7 @@ public class SimpleChatApp {
 					
 				ChatItem chatItem = new ChatItem(chatAppChatUUID, timestamp, userID, message);
 				String uri = workspace.addContent(chatItem.toJSONBytes(), ChatItem.ContentType);
-				workspace.addSimpleTransactionToWorkspace(uri, "New chat message");
+				workspace.addSimpleTransaction(uri, "New chat message");
 				
 				if (message.equals("test100")) {
 					test100();
@@ -374,7 +374,7 @@ public class SimpleChatApp {
 			
 			final ChatItem chatItem = new ChatItem(chatAppChatUUID, timestamp, "TestUserID", message);
 			String uri = workspace.addContent(chatItem.toJSONBytes(), ChatItem.ContentType);
-			workspace.addSimpleTransactionToWorkspace(uri, "New chat message");
+			workspace.addSimpleTransaction(uri, "New chat message");
 			
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() {

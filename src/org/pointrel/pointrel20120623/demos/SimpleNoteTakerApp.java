@@ -200,7 +200,7 @@ public class SimpleNoteTakerApp {
 	
 	void saveItem(NoteVersion listItem) {
 		String noteURI = workspace.addContent(listItem.toJSONBytes(), NoteVersion.ContentType);
-		workspace.addSimpleTransactionToWorkspace(noteURI, "Updating note");
+		workspace.addSimpleTransaction(noteURI, "Updating note");
 	}
 	
 	class NoteVersionCollector extends TransactionVisitor {
@@ -271,7 +271,7 @@ public class SimpleNoteTakerApp {
 	// Finds all added versions of a note up to a maximumCount (use zero for all)
 	ArrayList<NoteVersion> loadNoteVersionsForUUID(String uuid, int maximumCount) {
 		// TODO: Should create, maintain, and use an index
-		String transactionURI = workspace.getLatestTransactionForWorkspace();
+		String transactionURI = workspace.getLatestTransaction();
 		NoteVersionCollector visitor = new NoteVersionCollector(uuid, maximumCount);
 		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace, transactionURI, visitor);
 		if (visitor.listItems.isEmpty()) return null;
@@ -281,7 +281,7 @@ public class SimpleNoteTakerApp {
 	// Finds all uuids for notes up to a maximumCount (use zero for all)
 	Set<String> loadNoteUUIDs(int maximumCount) {
 		// TODO: Should create, maintain, and use an index
-		String transactionURI = workspace.getLatestTransactionForWorkspace();
+		String transactionURI = workspace.getLatestTransaction();
 		NoteUUIDCollector visitor = new NoteUUIDCollector(maximumCount);
 		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace, transactionURI, visitor);
 		if (visitor.noteUUIDs.isEmpty()) return new HashSet<String>();

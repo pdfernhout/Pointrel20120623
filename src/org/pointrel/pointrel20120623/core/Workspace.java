@@ -113,7 +113,7 @@ public class Workspace {
 
 	// Transactions
 	
-	public String getLatestTransactionForWorkspace() {
+	public String getLatestTransaction() {
 		if (workspaceVariable == null) {
 			throw new IllegalArgumentException("workspace variableName should not be null");
 		}
@@ -121,7 +121,7 @@ public class Workspace {
 	}
 	
 	// This does not check if user might be out-of-date in multi-user system
-	public String addSimpleTransactionToWorkspace(String uriToAdd, String comment) {
+	public String addSimpleTransaction(String uriToAdd, String comment) {
 		if (uriToAdd == null) {
 			throw new IllegalArgumentException("uriToAdd should not be null");
 		}
@@ -131,7 +131,7 @@ public class Workspace {
 		if (workspaceVariable == null) {
 			throw new IllegalArgumentException("workspace variableName should not be null");
 		}
-		String previousTransaction = this.getLatestTransactionForWorkspace();
+		String previousTransaction = this.getLatestTransaction();
 		Transaction transaction = new Transaction(workspaceVariable, Utility.currentTimestamp(), this.getUser(), uriToAdd, previousTransaction, comment);
 		String newTransactionURI = addContent(transaction.toJSONBytes(), Transaction.ContentType);
 		// TODO: This next line is not needed as the transaction is not kept around

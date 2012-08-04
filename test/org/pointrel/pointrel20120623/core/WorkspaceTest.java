@@ -12,17 +12,17 @@ public class WorkspaceTest extends TestCase {
 		String uriToAdd = SessionTest.URI_For_This_is_a_test;
 		String comment ="unit testing";
 		Workspace instance = new Workspace(variableName, SessionTest.UnitTestArchive, user);
-		String uri = instance.addSimpleTransactionToWorkspace(uriToAdd, comment);
+		String uri = instance.addSimpleTransaction(uriToAdd, comment);
 		assertNotNull(uri);
 		
-		String value = instance.getLatestTransactionForWorkspace();
+		String value = instance.getLatestTransaction();
 		assertEquals(uri, value);
 	}
 	
 	public void testVisitingTransactions() {
 		String variableName = "test005";
 		Workspace instance = new Workspace(variableName, SessionTest.UnitTestArchive, null);
-		String uri = instance.getLatestTransactionForWorkspace();
+		String uri = instance.getLatestTransaction();
 		final ArrayList<Transaction> transactionsEntered = new ArrayList<Transaction>();
 		final ArrayList<Transaction> transactionsExited = new ArrayList<Transaction>();
 		TransactionVisitor visitor = new TransactionVisitor() {
