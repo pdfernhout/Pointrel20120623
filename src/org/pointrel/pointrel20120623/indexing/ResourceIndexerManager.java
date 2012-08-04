@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 
-import org.pointrel.pointrel20120623.core.Session;
 import org.pointrel.pointrel20120623.core.Transaction;
 import org.pointrel.pointrel20120623.core.TransactionVisitor;
 import org.pointrel.pointrel20120623.core.Workspace;
@@ -60,7 +59,7 @@ public class ResourceIndexerManager {
 		
 		// There must be some difference
 		NewTransactionChecker visitor = new NewTransactionChecker(currentTransaction);
-		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace.getSession(), currentTransaction, visitor);
+		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace, currentTransaction, visitor);
 		
 		if (currentTransaction != null && !visitor.foundLastTransactionProcessed) {
 			throw new RuntimeException("Unfinished: No support for branching");
@@ -70,23 +69,23 @@ public class ResourceIndexerManager {
 		Collections.reverse(visitor.unprocessedTransactions);
 		for (Transaction transaction: visitor.unprocessedTransactions) {
 			// TODO: Ignoring deletions for now
-			loadNewTransaction(workspace.getSession(), transaction);
+			loadNewTransaction(workspace, transaction);
 		}
 	}
 
-	private void loadNewTransaction(Session session, Transaction transaction) {
+	private void loadNewTransaction(Workspace workspace, Transaction transaction) {
 		// TODO: Should these be added in reverse order?
 		for (String resourceURI: transaction.getInserts() ) {
-			processInsertedResource(session, resourceURI);
+			processInsertedResource(workspace, resourceURI);
 		}
 	}
 
-	private void processInsertedResource(Session session, String resourceURI) {
+	private void processInsertedResource(Workspace workspace, String resourceURI) {
 		// TODO: Figure out how to go from a resource URI to adding a user, membership, tag, message, association, or other object?
 		// TODO: Also need to somehow let some listeners know that there is new data
 		int indexingCount = 0;
 		for (ResourceIndexer resourceIndexer: resourceIndexers.values()) {
-			if (resourceIndexer.maybeIndexResource(session, resourceURI)) indexingCount++;
+			if (resourceIndexer.maybeIndexResource(workspace, resourceURI)) indexingCount++;
 		}
 		if (indexingCount > 0) return;
 		// TODO: Nobody wanted to process the resource -- what to do? Just ignore it?

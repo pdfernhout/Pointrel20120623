@@ -47,8 +47,8 @@ public class SimpleNoteTakerApp {
 		File archive = new File("./PointrelArchive");
 		// TODO: Fix user
 		String user = "unknown_user@example.com";
-		Workspace workspace = new Workspace(archive, Workspace.DefaultWorkspaceVariable, user);
-		// Workspace workspace = new Workspace("http://twirlip.com/pointrel/", Workspace.DefaultWorkspaceVariable, user);
+		Workspace workspace = new Workspace(Workspace.DefaultWorkspaceVariable, archive, user);
+		//Workspace workspace = new Workspace(Workspace.DefaultWorkspaceVariable, "http://twirlip.com/pointrel/", user);
 		final JFrame frame = new JFrame(FrameNameBase);
 		final SimpleNoteTakerApp app = new SimpleNoteTakerApp(workspace);
 		SwingUtilities.invokeLater(new Runnable() {
@@ -273,7 +273,7 @@ public class SimpleNoteTakerApp {
 		// TODO: Should create, maintain, and use an index
 		String transactionURI = workspace.getLatestTransactionForWorkspace();
 		NoteVersionCollector visitor = new NoteVersionCollector(uuid, maximumCount);
-		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace.getSession(), transactionURI, visitor);
+		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace, transactionURI, visitor);
 		if (visitor.listItems.isEmpty()) return null;
 		return visitor.listItems;			
 	}
@@ -283,7 +283,7 @@ public class SimpleNoteTakerApp {
 		// TODO: Should create, maintain, and use an index
 		String transactionURI = workspace.getLatestTransactionForWorkspace();
 		NoteUUIDCollector visitor = new NoteUUIDCollector(maximumCount);
-		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace.getSession(), transactionURI, visitor);
+		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace, transactionURI, visitor);
 		if (visitor.noteUUIDs.isEmpty()) return new HashSet<String>();
 		return visitor.noteUUIDs;			
 	}

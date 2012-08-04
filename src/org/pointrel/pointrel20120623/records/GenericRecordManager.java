@@ -81,7 +81,7 @@ public class GenericRecordManager<T extends GenericRecord> {
 		// TODO: Should create, maintain, and use an index
 		String transactionURI = workspace.getLatestTransactionForWorkspace();
 		RecordCollector visitor = new RecordCollector(contextID, maximumCount);
-		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace.getSession(), transactionURI, visitor);
+		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace, transactionURI, visitor);
 		if (visitor.records.isEmpty()) return null;
 		return visitor.records;			
 	}

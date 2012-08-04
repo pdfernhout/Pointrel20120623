@@ -45,12 +45,12 @@ public class Workspace {
 			}	
 		};
 
-	public Workspace(String serverURL, String workspaceVariable, String user) {
+	public Workspace(String workspaceVariable, String serverURL, String user) {
 		session = new Session(serverURL, user);
 		this.workspaceVariable = workspaceVariable;
 	}
 
-	public Workspace(File pointrelArchiveDirectory, String workspaceVariable, String user) {
+	public Workspace(String workspaceVariable, File pointrelArchiveDirectory, String user) {
 		session = new Session(pointrelArchiveDirectory, user);
 		this.workspaceVariable = workspaceVariable;
 	}
@@ -79,10 +79,6 @@ public class Workspace {
 		session.setUser(userID);
 	}
 
-	// TODO: Maybe should not expose this?
-	public Session getSession() {
-		return session;
-	}
 	
 	public void setNewTransactionLoadRate(int newValue) {
 		if (newValue < newTransactionLoaderSleepTime) {
@@ -115,12 +111,34 @@ public class Workspace {
 		return session.getContentForURIAsString(uri);
 	}
 
-	public void addSimpleTransactionToWorkspace(String uri, String comment) {
-		session.addSimpleTransactionToWorkspace(this.workspaceVariable, uri, comment);
-	}
+	// Transactions
 	
 	public String getLatestTransactionForWorkspace() {
-		return session.getLatestTransactionForWorkspace(this.workspaceVariable);
+		if (workspaceVariable == null) {
+			throw new IllegalArgumentException("workspace variableName should not be null");
+		}
+		return session.basicGetVariable(workspaceVariable);
+	}
+	
+	// This does not check if user might be out-of-date in multi-user system
+	public String addSimpleTransactionToWorkspace(String uriToAdd, String comment) {
+		if (uriToAdd == null) {
+			throw new IllegalArgumentException("uriToAdd should not be null");
+		}
+		if (comment == null) {
+			throw new IllegalArgumentException("comment should not be null");
+		}
+		if (workspaceVariable == null) {
+			throw new IllegalArgumentException("workspace variableName should not be null");
+		}
+		String previousTransaction = this.getLatestTransactionForWorkspace();
+		Transaction transaction = new Transaction(workspaceVariable, Utility.currentTimestamp(), this.getUser(), uriToAdd, previousTransaction, comment);
+		String newTransactionURI = addContent(transaction.toJSONBytes(), Transaction.ContentType);
+		// TODO: This next line is not needed as the transaction is not kept around
+		transaction.setURI(newTransactionURI);
+		System.out.println("URI for new transaction: " + newTransactionURI);
+		session.basicSetVariable(workspaceVariable, newTransactionURI, comment);
+		return newTransactionURI;
 	}
 
 }

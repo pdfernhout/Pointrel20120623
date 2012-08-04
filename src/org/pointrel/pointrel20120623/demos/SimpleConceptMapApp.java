@@ -64,8 +64,8 @@ public class SimpleConceptMapApp {
 		File archive = new File("./PointrelArchive");
 		// TODO: Fix user
 		String user = "unknown_user@example.com";
-		Workspace workspace = new Workspace(archive, Workspace.DefaultWorkspaceVariable, user);
-		// Workspace workspace = new Workspace("http://twirlip.com/pointrel/", Workspace.DefaultWorkspaceVariable, user);
+		Workspace workspace = new Workspace(Workspace.DefaultWorkspaceVariable, archive, user);
+		//Workspace workspace = new Workspace(Workspace.DefaultWorkspaceVariable, "http://twirlip.com/pointrel/", user);
 		final JFrame frame = new JFrame(FrameNameBase);
 		final SimpleConceptMapApp app = new SimpleConceptMapApp(workspace);
 		SwingUtilities.invokeLater(new Runnable() {
@@ -531,7 +531,7 @@ public class SimpleConceptMapApp {
 		// TODO: Should create, maintain, and use an index
 		String transactionURI = workspace.getLatestTransactionForWorkspace();
 		ConceptMapVersionCollector visitor = new ConceptMapVersionCollector(uuid, maximumCount);
-		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace.getSession(), transactionURI, visitor);
+		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace, transactionURI, visitor);
 		if (visitor.conceptMaps.isEmpty()) return null;
 		return visitor.conceptMaps;			
 	}
@@ -541,7 +541,7 @@ public class SimpleConceptMapApp {
 		// TODO: Should create, maintain, and use an index
 		String transactionURI = workspace.getLatestTransactionForWorkspace();
 		ConceptMapUUIDCollector visitor = new ConceptMapUUIDCollector(maximumCount);
-		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace.getSession(), transactionURI, visitor);
+		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace, transactionURI, visitor);
 		if (visitor.conceptMapUUIDs.isEmpty()) return new HashSet<String>();
 		return visitor.conceptMapUUIDs;			
 	}

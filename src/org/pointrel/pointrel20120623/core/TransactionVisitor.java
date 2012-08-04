@@ -43,9 +43,9 @@ public class TransactionVisitor {
 	 * 
 	 * @return true if found something of interest and finished early; false otherwise
 	 */ 
-	public static boolean visitAllResourcesInATransactionTreeRecursively(Session session, String transactionURI, TransactionVisitor visitor) {
+	public static boolean visitAllResourcesInATransactionTreeRecursively(Workspace workspace, String transactionURI, TransactionVisitor visitor) {
 		if (transactionURI != null && transactionURI.length() != 0) {
-			byte[] transactionContent = session.getContentForURI(transactionURI);
+			byte[] transactionContent = workspace.getContentForURI(transactionURI);
 			if (transactionContent == null) {
 				throw new RuntimeException("Missing transaction content for: " + transactionURI);
 			}
@@ -71,7 +71,7 @@ public class TransactionVisitor {
 			String previousTransactionURI = transaction.getPrevious();
 			
 			if (previousTransactionURI != null) {
-				if (visitAllResourcesInATransactionTreeRecursively(session, previousTransactionURI, visitor)) return true;
+				if (visitAllResourcesInATransactionTreeRecursively(workspace, previousTransactionURI, visitor)) return true;
 			}
 
 			if (visitor.transactionExited(transaction)) return true;

@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.pointrel.pointrel20120623.core.Session;
 import org.pointrel.pointrel20120623.core.TransactionVisitor;
 import org.pointrel.pointrel20120623.core.Utility;
 import org.pointrel.pointrel20120623.core.Workspace;
@@ -16,14 +15,14 @@ import com.fasterxml.jackson.core.JsonToken;
 
 // Collects all the documentUUIDs for objects of a content type that are parseable as JSON
 public class UUIDCollector extends TransactionVisitor {
-	final Session session;
+	final Workspace workspace;
 	final String encodedContentType;
 	final HashSet<String> uuids = new HashSet<String>();
 	final int maximumCount;
 	final JsonFactory jsonFactory = new JsonFactory();
 	
-	private UUIDCollector(Session session, String contentType, int maximumCount) {
-		this.session = session;
+	private UUIDCollector(Workspace workspace, String contentType, int maximumCount) {
+		this.workspace = workspace;
 		this.encodedContentType = Utility.encodeContentType(contentType);
 		this.maximumCount = maximumCount;
 	}
@@ -32,7 +31,7 @@ public class UUIDCollector extends TransactionVisitor {
 	
 	public boolean resourceInserted(String resourceUUID) {
 		if (!resourceUUID.endsWith(encodedContentType)) return false;
-		byte[] content = session.getContentForURI(resourceUUID);
+		byte[] content = workspace.getContentForURI(resourceUUID);
 		String documentUUID_Read;
 		try {
 			documentUUID_Read = readDocumentUUID(content);
@@ -67,9 +66,9 @@ public class UUIDCollector extends TransactionVisitor {
 	// Finds all uuids for items up to a maximumCount (use zero for all)
 	static public Set<String> collectUUIDs(Workspace workspace, String contentType, int maximumCount) {
 		// TODO: Should create, maintain, and use an index
-		UUIDCollector collector = new UUIDCollector(workspace.getSession(), contentType, maximumCount);
+		UUIDCollector collector = new UUIDCollector(workspace, contentType, maximumCount);
 		String transactionURI = workspace.getLatestTransactionForWorkspace();
-		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace.getSession(), transactionURI, collector);
+		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace, transactionURI, collector);
 		if (collector.uuids.isEmpty()) return new HashSet<String>();
 		return new HashSet<String>(collector.uuids);			
 	}

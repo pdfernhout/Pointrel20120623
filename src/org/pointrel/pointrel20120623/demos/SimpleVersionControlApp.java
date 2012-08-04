@@ -55,10 +55,10 @@ public class SimpleVersionControlApp {
 		File archive = new File("./PointrelArchive");
 		// TODO: Fix user
 		String user = "unknown_user@example.com";
-		Workspace session = new Workspace(archive, Workspace.DefaultWorkspaceVariable, user);
-		// Session session = new Session("http://twirlip.com/pointrel/",  Session.DefaultWorkspaceVariable, user);
+		Workspace workspace = new Workspace(Workspace.DefaultWorkspaceVariable, archive, user);
+		//Workspace workspace = new Workspace(Workspace.DefaultWorkspaceVariable, "http://twirlip.com/pointrel/", user);
 		final JFrame frame = new JFrame(FrameNameBase);
-		final SimpleVersionControlApp app = new SimpleVersionControlApp(session);
+		final SimpleVersionControlApp app = new SimpleVersionControlApp(workspace);
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				JPanel appPanel = app.openGUI();

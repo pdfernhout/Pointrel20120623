@@ -2,7 +2,6 @@ package org.pointrel.pointrel20120623.core;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import junit.framework.TestCase;
@@ -11,7 +10,7 @@ import junit.framework.TestCase;
 
 public class SessionTest extends TestCase {
 	
-	final File UnitTestArchive = new File("./UnitTestArchive");
+	final static File UnitTestArchive = new File("./UnitTestArchive");
 	
 	// URI for "This is a test"
 	public static final String URI_For_This_is_a_test = "pointrel://sha256_c7be1ed902fb8dd4d48997c6452f5d7e509fbcdbe2808b16bcf4edce4c07d14e_14.text%2Fplain";
@@ -151,46 +150,5 @@ public class SessionTest extends TestCase {
 		assertNotNull(uuid);
 		assertTrue(uuid.startsWith("uuid://"));
 		assertTrue(uuid.endsWith(".test+two%2Fthree"));
-	}
-	
-	public void testAddingTransaction() {
-		// Keeps adding the same file, so not something that would happen in practice
-		String variableName = "test005";
-		String user = "unknown_user@example.com";
-		String uriToAdd = URI_For_This_is_a_test;
-		String comment ="unit testing";
-		Session instance = new Session(UnitTestArchive, user);
-		String uri = instance.addSimpleTransactionToWorkspace(variableName, uriToAdd, comment);
-		assertNotNull(uri);
-		
-		String value = instance.basicGetVariable(variableName);
-		assertEquals(uri, value);
-	}
-	
-	public void testVisitingTransactions() {
-		String variableName = "test005";
-		Session instance = new Session(UnitTestArchive, null);
-		String uri = instance.basicGetVariable(variableName);
-		final ArrayList<Transaction> transactionsEntered = new ArrayList<Transaction>();
-		final ArrayList<Transaction> transactionsExited = new ArrayList<Transaction>();
-		TransactionVisitor visitor = new TransactionVisitor() {
-			public boolean transactionEntered(Transaction transaction) {
-				// System.out.println("Entering: " + transaction);
-				transactionsEntered.add(transaction);
-				return false;
-			}
-			public boolean transactionExited(Transaction transaction) {
-				// System.out.println("Exiting: " + transaction);
-				transactionsExited.add(transaction);
-				return false;
-			}
-		};
-		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(instance, uri, visitor);
-		assertFalse(transactionsEntered.isEmpty());
-		assertEquals(transactionsEntered.size(), transactionsExited.size());
-		for (int i = 0; i < transactionsEntered.size(); i++) {
-			// System.out.println("Comparing :" + i);
-			assertEquals(transactionsEntered.get(i), transactionsExited.get(transactionsEntered.size() - 1 - i));
-		}
 	}
 }

@@ -42,8 +42,8 @@ public class SimpleChatApp {
 		File archive = new File("./PointrelArchive");
 		// TODO: fix user
 		String user = "unknown_user@example.com";
-		Workspace workspace = new Workspace(archive, Workspace.DefaultWorkspaceVariable, user);
-		//Workspace workspace = new Workspace("http://twirlip.com/pointrel/", Workspace.DefaultWorkspaceVariable, user);
+		Workspace workspace = new Workspace(Workspace.DefaultWorkspaceVariable, archive, user);
+		//Workspace workspace = new Workspace(Workspace.DefaultWorkspaceVariable, "http://twirlip.com/pointrel/", user);
 		final JFrame frame = new JFrame(FrameNameBase);
 		final SimpleChatApp app = new SimpleChatApp(workspace);
 		SwingUtilities.invokeLater(new Runnable() {
@@ -238,7 +238,7 @@ public class SimpleChatApp {
 		// TODO: Should create, maintain, and use an index
 		String transactionURI = workspace.getLatestTransactionForWorkspace();
 		ChatItemCollector visitor = new ChatItemCollector(uuid, maximumCount);
-		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace.getSession(), transactionURI, visitor);
+		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace, transactionURI, visitor);
 		return visitor.chatItems;			
 	}
 

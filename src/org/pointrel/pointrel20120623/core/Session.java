@@ -176,34 +176,4 @@ public class Session {
 		}
 		return basicGetVariable(variableName);
 	}
-
-	// Transactions
-	
-	public String getLatestTransactionForWorkspace(String workspaceVariable) {
-		if (workspaceVariable == null) {
-			throw new IllegalArgumentException("workspace variableName should not be null");
-		}
-		return this.basicGetVariable(workspaceVariable);
-	}
-	
-	// This does not check if user might be out-of-date in multi-user system
-	public String addSimpleTransactionToWorkspace(String workspaceVariable, String uriToAdd, String comment) {
-		if (uriToAdd == null) {
-			throw new IllegalArgumentException("uriToAdd should not be null");
-		}
-		if (comment == null) {
-			throw new IllegalArgumentException("comment should not be null");
-		}
-		if (workspaceVariable == null) {
-			throw new IllegalArgumentException("workspace variableName should not be null");
-		}
-		String previousTransaction = this.getLatestTransactionForWorkspace(workspaceVariable);
-		Transaction transaction = new Transaction(workspaceVariable, Utility.currentTimestamp(), this.user, uriToAdd, previousTransaction, comment);
-		String newTransactionURI = addContent(transaction.toJSONBytes(), Transaction.ContentType);
-		// TODO: This next line is not needed as the transaction is not kept around
-		transaction.setURI(newTransactionURI);
-		System.out.println("URI for new transaction: " + newTransactionURI);
-		this.basicSetVariable(workspaceVariable, newTransactionURI, comment);
-		return newTransactionURI;
-	}
 }

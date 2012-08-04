@@ -31,6 +31,7 @@ import javax.swing.event.ListSelectionListener;
 
 import org.pointrel.pointrel20120623.core.Session;
 import org.pointrel.pointrel20120623.core.Utility;
+import org.pointrel.pointrel20120623.core.Workspace;
 
 public class ResourceViewerUtilityApp {
 	public static String FrameNameBase = "ResourceViewer";
@@ -55,18 +56,20 @@ public class ResourceViewerUtilityApp {
 	JLabel adviceLabel = new JLabel("Double-click on \"pointrel\" items\nin the editor to load them");
 	JButton saveResourceButton = new JButton("Save resource");
 
-	public ResourceViewerUtilityApp(Session session) {
-		this.session = session;
+	private String workspaceVariable;
+
+	public ResourceViewerUtilityApp(String workspaceVariable, File archive, String user) {
+		this.workspaceVariable = workspaceVariable;
+		this.session = new Session(archive, user);
 	}
 	
-	// TODO: Need to be able to set user ID to save resources
-	
 	public static void main(String[] args) {
+		String user = "unknown_user@example.com";
 		File archive = new File("./PointrelArchive");
-		Session session = new Session(archive, null);
+		// Session session = new Session(archive, null);
 		// Session session = new Session("http://twirlip.com/pointrel/");
 		final JFrame frame = new JFrame(FrameNameBase);
-		final ResourceViewerUtilityApp app = new ResourceViewerUtilityApp(session);
+		final ResourceViewerUtilityApp app = new ResourceViewerUtilityApp(Workspace.DefaultWorkspaceVariable, archive, user);
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				JPanel appPanel = app.openGUI();
