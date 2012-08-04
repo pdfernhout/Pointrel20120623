@@ -6,6 +6,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.jdesktop.swingworker.SwingWorker;
 
+//TODO: Need to think about encoding of workspace variable names from UUIDs?
+
 public class Workspace {
 	
 	// TODO: Really should remove this and maybe not have a default?

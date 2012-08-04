@@ -6,8 +6,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-// TODO: Need to think about encoding of workspace variable names
-
 public class Session {
 	final private File archiveDirectory;
 	final private String serverURL;
