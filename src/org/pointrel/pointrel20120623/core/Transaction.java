@@ -59,7 +59,7 @@ public class Transaction {
 		return Arrays.asList(value);
 	}
 
-	public Transaction(byte[] content) throws IOException {
+	public Transaction(byte[] content, String transactionURI) throws IOException {
 		boolean typeChecked = false;
 		boolean versionChecked = false;
 		String workspace_Read = null;
@@ -144,6 +144,7 @@ public class Transaction {
 		committer = committer_Read;
 		comment = comment_Read;
 		previous = previous_Read;
+		uri = transactionURI;
 	}
 
 	private void parseURIArray(JsonParser jsonParser, PriorityQueue<String> queue) throws IOException, JsonParseException {

@@ -51,8 +51,7 @@ public class TransactionVisitor {
 			}
 			Transaction transaction;
 			try {
-				transaction = new Transaction(transactionContent);
-				transaction.setURI(transactionURI);
+				transaction = new Transaction(transactionContent, transactionURI);
 			} catch (IOException e) {
 				e.printStackTrace();
 				throw new RuntimeException("Problem parsing transaction: " + transactionURI);

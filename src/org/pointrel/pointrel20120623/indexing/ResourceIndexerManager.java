@@ -42,6 +42,7 @@ public class ResourceIndexerManager {
 				foundLastTransactionProcessed = true;
 				return true;
 			}
+			unprocessedTransactions.add(transaction);
 			return false;
 		}
 	}
@@ -68,12 +69,12 @@ public class ResourceIndexerManager {
 		// TODO: Order might not be correct if branching was involved
 		Collections.reverse(visitor.unprocessedTransactions);
 		for (Transaction transaction: visitor.unprocessedTransactions) {
-			// TODO: Ignoring deletions for now
 			loadNewTransaction(workspace, transaction);
 		}
 	}
 
 	private void loadNewTransaction(Workspace workspace, Transaction transaction) {
+		// TODO: Ignoring deletions for now
 		// TODO: Should these be added in reverse order?
 		for (String resourceURI: transaction.getInserts() ) {
 			processInsertedResource(workspace, resourceURI);

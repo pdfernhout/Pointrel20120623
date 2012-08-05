@@ -21,7 +21,7 @@ public class TransactionTest extends TestCase {
 		String timestamp = Utility.currentTimestamp();
 		Transaction instance = new Transaction(Workspace.DefaultWorkspaceVariable, timestamp, "tester@example.com", "url", null, "unit testing");
 		byte[] bytes = instance.toJSONBytes();
-		Transaction instance2 = new Transaction(bytes);
+		Transaction instance2 = new Transaction(bytes, null);
 		
 		assertEquals(1, instance2.getInserts().size());
 		assertEquals("url", instance2.getInserts().get(0));
