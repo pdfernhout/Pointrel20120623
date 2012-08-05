@@ -151,6 +151,9 @@ public class Workspace {
 	}
 
 	public void addNewTransactionCallback(NewTransactionCallback newTransactionCallback) {
+		if (newTransactionCallback == null) {
+			throw new RuntimeException("Programming error: newTransactionCallback should not be null");
+		}
 		// Synchronize on the object to prevent conflicting adds and removes at the same time
 		synchronized(newTransactionCallbacks) {
 			newTransactionCallbacks.add(newTransactionCallback);
