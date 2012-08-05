@@ -55,7 +55,8 @@ public class Server implements VariablesInterface, ResourcesInterface {
 			if (line.startsWith("#")) continue;
 			if (line.startsWith("current_value: ")) {
 				String[] segments = line.split(" ");
-				if (segments.length != 2) return "";
+				if (segments.length != 2) return null;
+				if (segments[1].isEmpty()) return null;
 				return segments[1];
 			}
 		}
@@ -71,7 +72,11 @@ public class Server implements VariablesInterface, ResourcesInterface {
 		try {
 			variableNameEncoded = URLEncoder.encode(variableName, "utf-8");
 			userIDEncoded = URLEncoder.encode(userID, "utf-8");
-			previousValueEncoded = URLEncoder.encode(previousValue, "utf-8");
+			if (previousValue == null) {
+				previousValueEncoded = "";
+			} else {
+				previousValueEncoded = URLEncoder.encode(previousValue, "utf-8");
+			}
 			newValueEncoded = URLEncoder.encode(newValue, "utf-8");
 			commentEncoded = URLEncoder.encode(comment, "utf-8");
 		} catch (UnsupportedEncodingException e1) {
