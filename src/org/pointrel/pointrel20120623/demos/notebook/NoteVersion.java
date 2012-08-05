@@ -1,4 +1,4 @@
-package org.pointrel.pointrel20120623.demos.notetaker;
+package org.pointrel.pointrel20120623.demos.notebook;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

@@ -1,4 +1,4 @@
-package org.pointrel.pointrel20120623.demos.notetaker;
+package org.pointrel.pointrel20120623.demos.notebook;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -41,7 +41,7 @@ import org.pointrel.pointrel20120623.core.Workspace;
  * Each "note" is a document with a constant UUID but with possibly
  * multiple versions with different contents or titles
  */
-public class SimpleNoteTakerApp {
+public class SimpleNotebookApp {
 
 	public static void main(String[] args) {
 		File archive = new File("./PointrelArchive");
@@ -50,7 +50,7 @@ public class SimpleNoteTakerApp {
 		Workspace workspace = new Workspace(Workspace.DefaultWorkspaceVariable, archive, user);
 		//Workspace workspace = new Workspace(Workspace.DefaultWorkspaceVariable, "http://twirlip.com/pointrel/", user);
 		final JFrame frame = new JFrame(FrameNameBase);
-		final SimpleNoteTakerApp app = new SimpleNoteTakerApp(workspace);
+		final SimpleNotebookApp app = new SimpleNotebookApp(workspace);
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				JPanel appPanel = app.openGUI();
@@ -62,8 +62,8 @@ public class SimpleNoteTakerApp {
 		});
 	}
 	
-	final public static String FrameNameBase = "Simple Note Taker App";
-	final public static String applicationIdentifier = SimpleNoteTakerApp.class.getCanonicalName();
+	final public static String FrameNameBase = "Simple Notebook App";
+	final public static String applicationIdentifier = SimpleNotebookApp.class.getCanonicalName();
 	
 	Workspace workspace;
 	
@@ -89,7 +89,7 @@ public class SimpleNoteTakerApp {
 
 	protected NewTransactionCallback newTransactionCallback;
 	
-	public SimpleNoteTakerApp(Workspace workspace) {
+	public SimpleNotebookApp(Workspace workspace) {
 		this.workspace = workspace;
 	}
 	
