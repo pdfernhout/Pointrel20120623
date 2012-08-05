@@ -30,7 +30,7 @@ import org.pointrel.pointrel20120623.core.Utility;
 import org.pointrel.pointrel20120623.core.Workspace;
 
 
-// TODO: GUI issue too -- when to update? Maybe should show that a later version exists when looking at one
+// TODO: GUI issue too -- when to update? Maybe should show that a later version exists when looking at one with a content-out-of-date indicator?
 // TODO: Also, how to resolve edit conflicts?
 
 /* 
@@ -72,7 +72,6 @@ public class SimpleNoteTakerApp {
 	JTextArea textArea = new JTextArea();
 	JScrollPane textAreaScrollPane = new JScrollPane(textArea);
 	JSplitPane splitPane = new JSplitPane();
-	JButton refreshListButton = new JButton("Refresh list");
 	JButton newNoteButton = new JButton("New note");
 	JButton renameNoteButton = new JButton("Rename note");
 	JButton noteVersionsButton = new JButton("Note versions");
@@ -89,12 +88,20 @@ public class SimpleNoteTakerApp {
 		workspace.addSimpleTransaction(noteURI, "Updating note");
 	}
 	
-	protected void refreshListButtonPressed() {
+	volatile boolean listNeedsRefreshing = true;
+	
+	protected void refreshNoteList() {
+		if (!listNeedsRefreshing) return;
+		listNeedsRefreshing = false;
 		HashMap<String,Integer> present = new HashMap<String,Integer>();
 		for (int i = 0; i < noteListModel.getSize(); i++) {
 			NoteVersion noteVersion = (NoteVersion) noteListModel.get(i);
 			present.put(noteVersion.documentUUID, i);
 		}
+		// NoteVersion selectedNoteVersion = (NoteVersion)noteList.getSelectedValue();
+		//if (selectedNoteVersion != null) {
+		//	System.out.println("Currently selected uuid = " + selectedNoteVersion.documentUUID);
+		//}
 		for (Entry<String, CopyOnWriteArrayList<NoteVersion>> entry: this.notes.entrySet()) {
 			CopyOnWriteArrayList<NoteVersion> versions = entry.getValue();
 			if (versions.isEmpty()) continue;
@@ -104,14 +111,14 @@ public class SimpleNoteTakerApp {
 			if (!present.containsKey(entry.getKey())) {
 				System.out.println("Adding note version for: " + entry.getKey());
 				noteListModel.addElement(latestNoteVersion);
+				present.put(entry.getKey(), noteListModel.size() - 1);
 			} else {
-				// Update the note to the latest if it is not the currently selected one
-				NoteVersion selectedNoteVersion = (NoteVersion)noteList.getSelectedValue();
-				if (selectedNoteVersion == null || selectedNoteVersion.documentUUID != entry.getKey()) {
-					int index = present.get(entry.getKey());
-					System.out.println("updating note to latests for: " + entry.getKey());
-					noteListModel.set(index, latestNoteVersion);
-				}
+				// Update the note to the latest, but does not reload the content if selected
+				// if (selectedNoteVersion == null || !selectedNoteVersion.documentUUID.equals(entry.getKey())) {
+				int index = present.get(entry.getKey());
+				System.out.println("updating note to latest for: " + entry.getKey());
+				noteListModel.set(index, latestNoteVersion);
+				// }
 			}
 		}
 	}
@@ -122,7 +129,6 @@ public class SimpleNoteTakerApp {
 		
 		listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.PAGE_AXIS));
 		listPanel.add(noteListScrollPane);
-		listPanel.add(refreshListButton);
 		listPanel.add(newNoteButton);
 		listPanel.add(renameNoteButton);
 		listPanel.add(noteVersionsButton);
@@ -137,8 +143,6 @@ public class SimpleNoteTakerApp {
 	}
 
 	void hookupActions() {
-		refreshListButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {refreshListButtonPressed();}});
 		newNoteButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {newNoteButtonPressed();}});
 		renameNoteButton.addActionListener(new ActionListener() {
@@ -183,14 +187,15 @@ public class SimpleNoteTakerApp {
 					versions = new CopyOnWriteArrayList<NoteVersion>();
 					System.out.println("================ about to add new note");
 					notes.put(noteVersion.documentUUID, versions);
-					// TODO: Should do some sort of repaint where multiple updates can get merged
-					SwingUtilities.invokeLater(new Runnable() {
-						public void run() {
-							refreshListButtonPressed();
-						}});
 				}
 				System.out.println("================ about to add new note version");
 				versions.add(noteVersion);
+				// Uses flag to minimize refreshes if multiple changes
+				listNeedsRefreshing = true;
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						refreshNoteList();
+					}});
 			}
 		};
 	}
