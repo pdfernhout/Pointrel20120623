@@ -93,7 +93,11 @@ public class Workspace {
 				TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(Workspace.this, currentTransaction, visitor);
 				
 				if (currentTransaction != null && !visitor.foundLastTransactionProcessed) {
-					throw new RuntimeException("Unfinished: No support for branching or backtracking yet");
+					String message = "Unfinished: No support for branching or backtracking yet";
+					System.out.println(message);
+					RuntimeException exception = new RuntimeException(message);
+					exception.printStackTrace();
+					throw exception;
 				}
 				
 				// TODO: Maybe want to try/catch around these
@@ -103,8 +107,14 @@ public class Workspace {
 				for (Transaction transaction: visitor.unprocessedTransactions) {
 					transactions.add(transaction);
 					for (NewTransactionCallback newTransactionCallback: newTransactionCallbacks) {
-						newTransactionCallback.newTransaction(transaction);
-						newTransactionCallback.lastTransactionProcessed = transaction.uri;
+						try {
+							newTransactionCallback.newTransaction(transaction);
+							newTransactionCallback.lastTransactionProcessed = transaction.uri;
+						} catch (RuntimeException e) {
+							// Ensure any runtime exception is displayed, and keep going, after removing callback
+							e.printStackTrace();
+							newTransactionCallbacks.remove(newTransactionCallback);
+						}
 					}
 					System.out.println("transaction.uri: " + transaction.uri);
 					lastTransactionProcessed = transaction.uri;
@@ -121,19 +131,25 @@ public class Workspace {
 			}
 
 			private void catchupMissedTransactions(NewTransactionCallback newTransactionCallback) {
-				for (Transaction transaction: transactions) {
-					newTransactionCallback.newTransaction(transaction);
-					newTransactionCallback.lastTransactionProcessed = transaction.uri;
+				try {
+					for (Transaction transaction: transactions) {
+						newTransactionCallback.newTransaction(transaction);
+						newTransactionCallback.lastTransactionProcessed = transaction.uri;
+					}
+				} catch (RuntimeException e) {
+					// Ensure any runtime exception is displayed, and keep going, after removing callback
+					e.printStackTrace();
+					newTransactionCallbacks.remove(newTransactionCallback);
 				}
 			}
 		};
 
 //	// TODO: Maybe handle remote things via synchronization?
-//	public Workspace(String workspaceVariable, String serverURL, String user) {
-//		session = new Session(serverURL, user);
-//		this.workspaceVariable = workspaceVariable;
-//		newTransactionLoaderWorker.execute();
-//	}
+	public Workspace(String workspaceVariable, String serverURL, String user) {
+		session = new Session(serverURL, user);
+		this.workspaceVariable = workspaceVariable;
+		newTransactionLoaderWorker.execute();
+	}
 
 	public Workspace(String workspaceVariable, File pointrelArchiveDirectory, String user) {
 		session = new Session(pointrelArchiveDirectory, user);
@@ -186,9 +202,16 @@ public class Workspace {
 	}
 	
 	// Resources and variables -- all of these can (for a server connection) take an arbitrarily long time to complete
+	// The exception handlers with printing are to ensure exceptions are displayed if called from background threads
 	
 	public String addContent(byte[] content, String contentType, String precalculatedURI) {
-		return session.addContent(content, contentType, precalculatedURI);
+		try {
+			return session.addContent(content, contentType, precalculatedURI);
+		} catch (RuntimeException e) {
+			// Ensure any runtime exception is displayed
+			e.printStackTrace();
+			throw e;
+		}	
 	}
 	
 	// Convenience method for above
@@ -202,7 +225,12 @@ public class Workspace {
 	}
 
 	public byte[] getContentForURI(String uri) {
-		return session.getContentForURI(uri);
+		try {
+			return session.getContentForURI(uri);
+		} catch (RuntimeException e) {
+			e.printStackTrace();
+			throw e;
+		}
 	}
 	
 	// Convenience method for above
@@ -216,7 +244,12 @@ public class Workspace {
 		if (workspaceVariable == null) {
 			throw new IllegalArgumentException("workspace variableName should not be null");
 		}
-		return session.basicGetVariable(workspaceVariable);
+		try {
+			return session.basicGetVariable(workspaceVariable);
+		} catch (RuntimeException e) {
+			e.printStackTrace();
+			throw e;
+		}
 	}
 	
 	// TODO: Think about better synchronization and also locking the variable
@@ -239,7 +272,13 @@ public class Workspace {
 		// TODO: This next line is not needed as the transaction is not kept around
 		transaction.setURI(newTransactionURI);
 		System.out.println("URI for new transaction: " + newTransactionURI);
-		session.basicSetVariable(workspaceVariable, newTransactionURI, comment);
+		try {
+			session.basicSetVariable(workspaceVariable, newTransactionURI, comment);
+		} catch (RuntimeException e) {
+			// Ensure any runtime exception is displayed
+			e.printStackTrace();
+			throw e;
+		}
 		return newTransactionURI;
 	}
 
