@@ -153,6 +153,10 @@ public class Workspace {
 	public void addNewTransactionCallback(NewTransactionCallback newTransactionCallback) {
 		newTransactionCallbacks.add(newTransactionCallback);
 	}
+	
+	public void removeNewTransactionCallback(NewTransactionCallback newTransactionCallback) {
+		newTransactionCallbacks.remove(newTransactionCallback);
+	}
 
 	// Accessing
 	

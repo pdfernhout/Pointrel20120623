@@ -67,6 +67,7 @@ public class SimpleChatApp {
 	JPanel appPanel = new JPanel();
 	
 	JPanel chatPanel = new JPanel();
+	JTextField chatUUIDTextField = new JTextField();
 	JTextField userIDTextField = new JTextField();
 	JTextArea chatLogTextArea = new JTextArea();
 	JScrollPane chatLogTextAreaScrollPane = new JScrollPane(chatLogTextArea);
@@ -201,12 +202,14 @@ public class SimpleChatApp {
 		appPanel.setLayout(new BorderLayout());
 		appPanel.add(chatPanel, BorderLayout.CENTER);
 		
+		chatUUIDTextField.setMaximumSize(new Dimension(Integer.MAX_VALUE, chatUUIDTextField.getPreferredSize().height));
 		userIDTextField.setMaximumSize(new Dimension(Integer.MAX_VALUE, userIDTextField.getPreferredSize().height));
 		// uriTextField.setEditable(false);
 		
 		sendTextField.setMaximumSize(new Dimension(Integer.MAX_VALUE, sendTextField.getPreferredSize().height));
 		
 		chatPanel.setLayout(new BoxLayout(chatPanel, BoxLayout.Y_AXIS));
+		chatPanel.add(chatUUIDTextField);
 		chatPanel.add(userIDTextField);
 		chatPanel.add(chatLogTextAreaScrollPane);
 		chatPanel.add(sendTextField);
@@ -217,10 +220,13 @@ public class SimpleChatApp {
 		
 		hookupActions();
 		
-		userIDTextField.setText("ENTER_USERID");
+		chatUUIDTextField.setText(chatAppChatUUID);
+		userIDTextField.setText(this.workspace.getUser());
 		
 		return appPanel;
 	}
+	
+	NewTransactionCallback newTransactionCallback;
 
 	private void hookupActions() {
 		sendButton.addActionListener(new ActionListener() {
@@ -229,8 +235,24 @@ public class SimpleChatApp {
 		// Do something when enter is pressed
 		sendTextField.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent arg0) {sendButtonPressed(); }});
+		
+		chatUUIDTextField.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {chatUUIDTextFieldEnterPressed();}});
 
-		final NewTransactionCallback newTransactionCallback = new NewTransactionCallback(ChatItem.ContentType) {
+		userIDTextField.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {userIDTextFieldEnterPressed();}});
+
+		newTransactionCallback = createNewTransactionCallback();
+		
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				workspace.addNewTransactionCallback(newTransactionCallback);
+			}}
+		);
+	}
+
+	protected NewTransactionCallback createNewTransactionCallback() {
+		return new NewTransactionCallback(ChatItem.ContentType) {
 			
 			@Override
 			protected void insert(String resourceUUID) {
@@ -245,18 +267,31 @@ public class SimpleChatApp {
 					e.printStackTrace();
 					return;
 				}
+				// TODO: Improve all this to reduce redundancy of making all objects for every chat etc.
+				if (!chatAppChatUUID.equals(chatItem.chatUUID)) {
+					System.out.println("==== chatItem is for another chat");
+					return;
+				}
 				System.out.println("================ about to add new chatItem to log");
 				addChatItemToLog(chatItem);
 			}
 		};
-		
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				workspace.addNewTransactionCallback(newTransactionCallback);
-			}}
-		);
 	}
 	
+	protected void userIDTextFieldEnterPressed() {
+		workspace.setUser(userIDTextField.getText());
+	}
+
+	protected void chatUUIDTextFieldEnterPressed() {
+		this.chatAppChatUUID = chatUUIDTextField.getText();
+		System.out.println("Updated chat uuid to: " + chatAppChatUUID);
+		// Refresh entire system
+		this.chatLogTextArea.setText("");
+		workspace.removeNewTransactionCallback(newTransactionCallback);
+		newTransactionCallback = createNewTransactionCallback();
+		workspace.addNewTransactionCallback(newTransactionCallback);
+	}
+
 	protected void addChatItemToLog(final ChatItem chatItem) {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
@@ -271,8 +306,10 @@ public class SimpleChatApp {
 			JOptionPane.showMessageDialog(appPanel, "Please set the user ID first");
 			return;
 		}
-		// TODO: Fix user somehow in app
-		workspace.setUser(userID);
+		if (chatAppChatUUID.length() == 0) {
+			JOptionPane.showMessageDialog(appPanel, "Please set the chatUUID first");
+			return;
+		}
 		final String message = sendTextField.getText();
 		sendTextField.setText("");
 		sendButton.setEnabled(false);
