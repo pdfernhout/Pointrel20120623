@@ -36,7 +36,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 
 // TODO: Need to add "pending" items
-
+// TODO: Maybe have some facility in Workspace to do the add resource in the background?
 public class SimpleChatApp {
 	
 	public static void main(String[] args) {
@@ -72,12 +72,9 @@ public class SimpleChatApp {
 	JScrollPane chatLogTextAreaScrollPane = new JScrollPane(chatLogTextArea);
 	JTextField sendTextField = new JTextField();
 	JButton sendButton = new JButton("Send");	
-//	JButton refreshButton = new JButton("Refresh");	
 	
 	// TODO: Figure out what to do about UUID of chat
 	String chatAppChatUUID = "default_chat";
-	
-	// TODO: Maybe can generalize ChatItem and ChatItemVisitor with ListItem somehow?
 	
 	class ChatItem {
 		final public static String ContentType = "text/vnd.pointrel.SimpleChatApp.ChatItem.json";
@@ -196,52 +193,9 @@ public class SimpleChatApp {
 		}
 	}
 	
-//	class ChatItemCollector extends TransactionVisitor {
-//		final String encodedContentType = Utility.encodeContentType(ChatItem.ContentType);
-//		ArrayList<ChatItem> chatItems = new ArrayList<ChatItem>();
-//		final int maximumCount;
-//		final String chatUUID;
-//		
-//		ChatItemCollector(String chatUUID, int maximumCount) {
-//			this.chatUUID = chatUUID;
-//			this.maximumCount = maximumCount;
-//		}
-//		
-//		// TODO: Maybe should handle removes, too? Tricky as they come before the inserts when recursing
-//		
-//		public boolean resourceInserted(String resourceUUID) {
-//			if (!resourceUUID.endsWith(encodedContentType)) return false;
-//			byte[] chatItemContent = workspace.getContentForURI(resourceUUID);
-//			if (chatItemContent == null) {
-//				System.out.println("content not found for chat item: " + resourceUUID);
-//			}
-//			ChatItem chatItem;
-//			try {
-//				chatItem = new ChatItem(chatItemContent);
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//				return false;
-//			}
-//			if (chatItem.chatUUID.equals(chatUUID)) {
-//				chatItems.add(chatItem);
-//				if (maximumCount > 0 && chatItems.size() >= maximumCount) return true;
-//			}
-//			return false;
-//		}
-//	}
-	
 	public SimpleChatApp(Workspace workspace) {
 		this.workspace = workspace;
 	}
-
-//	// Finds all chat items for a chatUUID up to a maximumCount (use zero for all)
-//	ArrayList<ChatItem> loadChatItemsForUUID(String uuid, int maximumCount) {
-//		// TODO: Should create, maintain, and use an index
-//		String transactionURI = workspace.getLatestTransaction();
-//		ChatItemCollector visitor = new ChatItemCollector(uuid, maximumCount);
-//		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace, transactionURI, visitor);
-//		return visitor.chatItems;			
-//	}
 
 	public JPanel openGUI() {
 		appPanel.setLayout(new BorderLayout());
@@ -257,7 +211,6 @@ public class SimpleChatApp {
 		chatPanel.add(chatLogTextAreaScrollPane);
 		chatPanel.add(sendTextField);
 		chatPanel.add(sendButton);
-//		chatPanel.add(refreshButton);
 		
 		chatLogTextArea.setLineWrap(true);
 		chatLogTextArea.setWrapStyleWord(true);
@@ -277,9 +230,6 @@ public class SimpleChatApp {
 		sendTextField.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent arg0) {sendButtonPressed(); }});
 
-//		refreshButton.addActionListener(new ActionListener() {
-//			public void actionPerformed(ActionEvent arg0) {refreshButtonPressed(); }});
-		
 		final NewTransactionCallback newTransactionCallback = new NewTransactionCallback(ChatItem.ContentType) {
 			
 			@Override
@@ -305,17 +255,6 @@ public class SimpleChatApp {
 				workspace.addNewTransactionCallback(newTransactionCallback);
 			}}
 		);
-		
-//		// Update every ten seconds
-//		ActionListener runnable = new ActionListener() {
-//			public void actionPerformed(ActionEvent arg0) {
-//				if (refreshButton.isEnabled()) refreshButtonPressed();
-//			}
-//		};
-//		runnable.actionPerformed(null);
-//		Timer timer = new Timer(10000, runnable);
-//		// TODO: Removed for now
-//		// timer.start();
 	}
 	
 	protected void addChatItemToLog(final ChatItem chatItem) {
@@ -325,36 +264,6 @@ public class SimpleChatApp {
 				chatLogTextArea.append(chatItem.getLogText());
 			}});
 	}
-
-//	protected void refreshButtonPressed() {
-//		refreshButton.setEnabled(false);
-//		sendButton.setEnabled(false);
-//		SwingWorker<String, Void> worker = new SwingWorker<String, Void>() {
-//			public String doInBackground() {
-//				ArrayList<ChatItem> chatItems = loadChatItemsForUUID(chatAppChatUUID, maxChatItemsOnRefresh);
-//				// List<ChatItem> chatItemsSubset = chatItems.subList(0, Math.min(MaxChatItemsOnRefresh, chatItems.size()));
-//				Collections.reverse(chatItems);
-//				StringBuffer stringBuffer = new StringBuffer();
-//				for (ChatItem chatItem: chatItems) {
-//					stringBuffer.append(chatItem.getLogText());
-//				}
-//				return stringBuffer.toString();
-//			}
-//			public void done() {
-//				try {
-//					String result = get();
-//					chatLogTextArea.setText(result);
-//				} catch (InterruptedException e) {
-//					e.printStackTrace();
-//				} catch (ExecutionException e) {
-//					e.printStackTrace();
-//				}
-//				refreshButton.setEnabled(true);
-//				sendButton.setEnabled(true);
-//			}
-//		};
-//		worker.execute();
-//	}
 
 	protected void sendButtonPressed() {
 		final String userID = userIDTextField.getText();
@@ -367,7 +276,6 @@ public class SimpleChatApp {
 		final String message = sendTextField.getText();
 		sendTextField.setText("");
 		sendButton.setEnabled(false);
-		//refreshButton.setEnabled(false);
 		
 		SwingWorker<String, Void> worker = new SwingWorker<String, Void>() {
 			public String doInBackground() {
@@ -383,19 +291,7 @@ public class SimpleChatApp {
 				return chatItem.getLogText();
 			}
 			public void done() {
-//				String theText = null;
-//				try {
-//					theText = get();
-//				} catch (InterruptedException e) {
-//					e.printStackTrace();
-//				} catch (ExecutionException e) {
-//					e.printStackTrace();
-//				}
-//				if (theText != null) {
-//					chatLogTextArea.append(theText);
-//				}
 				sendButton.setEnabled(true);
-				//refreshButton.setEnabled(true);
 			}
 		};
 		worker.execute();
