@@ -23,7 +23,7 @@ public class Workspace {
 
 	final private CopyOnWriteArrayList<NewTransactionCallback> newTransactionCallbacks = new CopyOnWriteArrayList<NewTransactionCallback>();
 	
-	int newTransactionLoaderSleepTime = 3000;
+	int newTransactionLoaderSleepTime = 1000;
 	
 	// TODO: This may take a lot of memory, maybe can remove it or reduce it to just strings?
 	final ArrayList<Transaction> transactions = new ArrayList<Transaction>();

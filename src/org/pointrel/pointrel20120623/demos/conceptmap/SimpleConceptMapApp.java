@@ -7,25 +7,24 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import javax.swing.Timer;
 
-import org.pointrel.pointrel20120623.core.TransactionVisitor;
-import org.pointrel.pointrel20120623.core.Utility;
+import org.pointrel.pointrel20120623.core.NewTransactionCallback;
 import org.pointrel.pointrel20120623.core.Workspace;
 
 
-// TODO: Make sure done writing before close
-// TODO: Background writing and reading as SwingWorker
-// TODO: How to know when reading/writing and how if locks GUI or otherwise user knows what is happening
+// Older TODO items:
+// TODO: Make sure done writing before close?
+// TODO: Background writing as SwingWorker?
+// TODO: How to know when reading/writing and how if locks GUI or otherwise user knows what is happening?
+
+// Current TODO items since using Workspace background loading:
+// TODO: Has a bug where sometimes as start dragging will cancel it due to loading a new version of the map
 
 public class SimpleConceptMapApp {
 	public static String FrameNameBase = "Simple Concept Map";
@@ -36,11 +35,11 @@ public class SimpleConceptMapApp {
 	ConceptMapPanel mapPanel = new ConceptMapPanel(this);
 	JButton newConceptButton = new JButton("New concept...");
 	
-	private int ReloadFrequency_ms = 3000;
-
 	// TODO: Fix this so it is settable
 	public static String DefaultConceptMapUUID = "default_concept_map";
 	public String conceptMapUUIDForApp = DefaultConceptMapUUID;
+
+	private NewTransactionCallback newTransactionCallback;
 	
 	public SimpleConceptMapApp(Workspace workspace) {
 		this.workspace = workspace;
@@ -78,15 +77,47 @@ public class SimpleConceptMapApp {
 		newConceptButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {newConceptButtonPressed();}});
 		
-		// Update every ten seconds
-		ActionListener runnable = new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				checkForAndLoadUpdatedConceptMap();
+		newTransactionCallback = createNewTransactionCallback();
+		
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				workspace.addNewTransactionCallback(newTransactionCallback);
+			}}
+		);
+	}
+	
+	// TODO: Could track list of other concept maps that could be loaded
+	
+	protected NewTransactionCallback createNewTransactionCallback() {
+		return new NewTransactionCallback(ConceptMapVersion.ContentType) {
+			
+			@Override
+			protected void insert(String resourceUUID) {
+				byte[] conceptMapVersionContent = workspace.getContentForURI(resourceUUID);
+				if (conceptMapVersionContent == null) {
+					System.out.println("content not found for concept map version: " + resourceUUID);
+				}
+				final ConceptMapVersion conceptMapVersion;
+				try {
+					conceptMapVersion = new ConceptMapVersion(conceptMapVersionContent);
+				} catch (IOException e) {
+					e.printStackTrace();
+					return;
+				}
+				// TODO: Improve all this to reduce redundancy of making all objects for every concept map etc.
+				if (!conceptMapUUIDForApp.equals(conceptMapVersion.documentUUID)) {
+					System.out.println("==== conceptMapVersion is for another conceptMap");
+					return;
+				}
+				System.out.println("================ about to use new conceptMapVersion");
+				useNewConceptMapVersion(conceptMapVersion);
 			}
 		};
-		runnable.actionPerformed(null);
-		Timer timer = new Timer(ReloadFrequency_ms , runnable);
-		timer.start();
+	}
+
+	protected void useNewConceptMapVersion(ConceptMapVersion conceptMapVersion) {
+		mapPanel.conceptMap = conceptMapVersion;
+		mapPanel.repaint();
 	}
 
 	protected void newConceptButtonPressed() {
@@ -111,105 +142,5 @@ public class SimpleConceptMapApp {
 		workspace.addSimpleTransaction(conceptMapVersionURI, "new concept map version");
 		System.out.println("Just wrote new concept map: " + new String(jsonBytes));
 		//System.out.println(newMap.drawables.size());
-	}
-	
-	private void checkForAndLoadUpdatedConceptMap() {
-		System.out.println("checkForAndLoadUpdatedConceptMap test");
-		if (mapPanel.selected != null) return;
-		System.out.println("checkForAndLoadUpdatedConceptMap proceeding");
-
-		ConceptMapVersion newMap = loadLatestConceptMapForUUID(conceptMapUUIDForApp);
-		if (newMap != null) {
-			mapPanel.conceptMap = newMap;
-			mapPanel.repaint();
-		}
-	}
-	
-	// TODO: Genericize the code below which is from SimpleNoteTakerApp, so the common patters is common, also to ChatApp
-	// TODO: Should have an index
-	class ConceptMapVersionCollector extends TransactionVisitor {
-		final String encodedContentType = Utility.encodeContentType(ConceptMapVersion.ContentType);
-		ArrayList<ConceptMapVersion> conceptMaps = new ArrayList<ConceptMapVersion>();
-		final int maximumCount;
-		final String documentUUID;
-		
-		ConceptMapVersionCollector(String documentUUID, int maximumCount) {
-			this.documentUUID = documentUUID;
-			this.maximumCount = maximumCount;
-		}
-		
-		// TODO: Maybe should handle removes, too? Tricky as they come before the inserts when recursing
-		
-		public boolean resourceInserted(String resourceUUID) {
-			if (!resourceUUID.endsWith(encodedContentType)) return false;
-			byte[] conceptMapContent = workspace.getContentForURI(resourceUUID);
-			ConceptMapVersion conceptMap;
-			try {
-				conceptMap = new ConceptMapVersion(conceptMapContent);
-			} catch (IOException e) {
-				e.printStackTrace();
-				return false;
-			}
-			System.out.println("conceptMap.documentUUID: " + conceptMap.documentUUID);
-			if (conceptMap.documentUUID.equals(documentUUID)) {
-				conceptMaps.add(conceptMap);
-				if (maximumCount > 0 && conceptMaps.size() >= maximumCount) return true;
-			}
-			return false;
-		}
-	}
-	
-	class ConceptMapUUIDCollector extends TransactionVisitor {
-		final String encodedContentType = Utility.encodeContentType(ConceptMapVersion.ContentType);
-		final HashSet<String> conceptMapUUIDs = new HashSet<String>();
-		final int maximumCount;
-		
-		ConceptMapUUIDCollector(int maximumCount) {
-			this.maximumCount = maximumCount;
-		}
-		
-		// TODO: Maybe should handle removes, too? Tricky as they come before the inserts when recursing
-		
-		public boolean resourceInserted(String resourceUUID) {
-			if (!resourceUUID.endsWith(encodedContentType)) return false;
-			byte[] conceptMapContent = workspace.getContentForURI(resourceUUID);
-			ConceptMapVersion conceptMap;
-			try {
-				conceptMap = new ConceptMapVersion(conceptMapContent);
-			} catch (IOException e) {
-				e.printStackTrace();
-				return false;
-			}
-			conceptMapUUIDs.add(conceptMap.documentUUID);
-			if (maximumCount > 0 && conceptMapUUIDs.size() >= maximumCount) return true;
-			return false;
-		}
-	}
-	
-	// Finds most recently added version of concept map
-	ConceptMapVersion loadLatestConceptMapForUUID(String uuid) {
-		ArrayList<ConceptMapVersion> listItems = loadConceptMapVersionsForUUID(uuid, 1);
-		if (listItems == null || listItems.isEmpty()) return null;
-		return listItems.get(0);
-	}
-	
-	// Finds all added versions of a concept map up to a maximumCount (use zero for all)
-	ArrayList<ConceptMapVersion> loadConceptMapVersionsForUUID(String uuid, int maximumCount) {
-		// TODO: Should create, maintain, and use an index
-		String transactionURI = workspace.getLatestTransaction();
-		ConceptMapVersionCollector visitor = new ConceptMapVersionCollector(uuid, maximumCount);
-		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace, transactionURI, visitor);
-		if (visitor.conceptMaps.isEmpty()) return null;
-		return visitor.conceptMaps;			
-	}
-	
-	// Finds all uuids for concept maps up to a maximumCount (use zero for all)
-	Set<String> loadConceptMapUUIDs(int maximumCount) {
-		// TODO: Should create, maintain, and use an index
-		String transactionURI = workspace.getLatestTransaction();
-		ConceptMapUUIDCollector visitor = new ConceptMapUUIDCollector(maximumCount);
-		TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(workspace, transactionURI, visitor);
-		if (visitor.conceptMapUUIDs.isEmpty()) return new HashSet<String>();
-		return visitor.conceptMapUUIDs;			
 	}
 }
