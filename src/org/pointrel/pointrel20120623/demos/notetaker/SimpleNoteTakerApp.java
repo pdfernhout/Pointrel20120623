@@ -2,6 +2,7 @@ package org.pointrel.pointrel20120623.demos.notetaker;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -12,8 +13,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.swing.BoxLayout;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -29,9 +32,9 @@ import org.pointrel.pointrel20120623.core.NewTransactionCallback;
 import org.pointrel.pointrel20120623.core.Utility;
 import org.pointrel.pointrel20120623.core.Workspace;
 
-
 // TODO: GUI issue too -- when to update? Maybe should show that a later version exists when looking at one with a content-out-of-date indicator?
 // TODO: Also, how to resolve edit conflicts?
+// TODO: Updated combo box with versions for currently selected note when get new transaction
 
 /* 
  * Simple note taker application
@@ -65,18 +68,25 @@ public class SimpleNoteTakerApp {
 	Workspace workspace;
 	
 	JPanel appPanel = new JPanel();
+	JSplitPane splitPane = new JSplitPane();
 	
+	JPanel listPanel = new JPanel();
 	DefaultListModel noteListModel = new DefaultListModel();
 	JList noteList = new JList(noteListModel);
 	JScrollPane noteListScrollPane = new JScrollPane(noteList);
-	JTextArea textArea = new JTextArea();
-	JScrollPane textAreaScrollPane = new JScrollPane(textArea);
-	JSplitPane splitPane = new JSplitPane();
 	JButton newNoteButton = new JButton("New note");
 	JButton renameNoteButton = new JButton("Rename note");
 	JButton noteVersionsButton = new JButton("Note versions");
+	
+	JPanel notePanel = new JPanel();
+	DefaultComboBoxModel noteVersionsComboBoxModel = new DefaultComboBoxModel();
+	JComboBox noteVersionsComboBox = new JComboBox(noteVersionsComboBoxModel);
+	JTextArea textArea = new JTextArea();
+	JScrollPane textAreaScrollPane = new JScrollPane(textArea);
+	//DefaultComboBoxModel noteTypeComboBoxModel = new DefaultComboBoxModel();
+	//JComboBox noteTypeComboBox = new JComboBox(noteTypeComboBoxModel);
 	JButton saveNoteButton = new JButton("Save note");
-	JPanel listPanel = new JPanel();
+
 	protected NewTransactionCallback newTransactionCallback;
 	
 	public SimpleNoteTakerApp(Workspace workspace) {
@@ -132,10 +142,22 @@ public class SimpleNoteTakerApp {
 		listPanel.add(newNoteButton);
 		listPanel.add(renameNoteButton);
 		listPanel.add(noteVersionsButton);
-		listPanel.add(saveNoteButton);
 		
+		noteVersionsComboBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, noteVersionsComboBox.getPreferredSize().height));
+		//noteTypeComboBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, noteTypeComboBox.getPreferredSize().height));
+		
+		notePanel.setLayout(new BoxLayout(notePanel, BoxLayout.PAGE_AXIS));
+		notePanel.add(noteVersionsComboBox);
+		notePanel.add(textAreaScrollPane);
+		//notePanel.add(noteTypeComboBox);
+		notePanel.add(saveNoteButton);
+		
+		//noteTypeComboBoxModel.addElement("plain");
+		//noteTypeComboBoxModel.addElement("html");
+		//noteTypeComboBoxModel.addElement("markdown");
+				
 		splitPane.setLeftComponent(listPanel);
-		splitPane.setRightComponent(textAreaScrollPane);
+		splitPane.setRightComponent(notePanel);
 		
 		hookupActions();
 		
@@ -155,6 +177,12 @@ public class SimpleNoteTakerApp {
 		noteList.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent event) {listSelectionChanged(event);}});
 		
+		noteVersionsComboBox.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {noteVersionsComboBoxSelectionChanged();}});
+		
+		//noteTypeComboBox.addActionListener(new ActionListener() {
+		//	public void actionPerformed(ActionEvent arg0) {noteTypeComboBoxSelectionChanged();}});
+		
 		newTransactionCallback = createNewTransactionCallback();
 		
 		SwingUtilities.invokeLater(new Runnable() {
@@ -164,6 +192,24 @@ public class SimpleNoteTakerApp {
 		);
 	}
 	
+	//protected void noteTypeComboBoxSelectionChanged() {
+	//	// TODO Auto-generated method stub	
+	//}
+
+	protected void noteVersionsComboBoxSelectionChanged() {
+		NoteVersion noteVersion = (NoteVersion) noteVersionsComboBox.getSelectedItem();
+		if (noteVersion == null) {
+			textArea.setText("");
+		} else {
+			String text = noteVersion.noteBody;
+			//if ("markdown".equals(this.noteTypeComboBox.getSelectedItem())) {
+			//	MarkDown markDown = new MarkDown();
+			//	text = markDown.transform(text);
+			//}
+			textArea.setText(text);
+		}
+	}
+
 	final ConcurrentHashMap<String,CopyOnWriteArrayList<NoteVersion>> notes = new ConcurrentHashMap<String,CopyOnWriteArrayList<NoteVersion>>();
 	
 	protected NewTransactionCallback createNewTransactionCallback() {
@@ -209,9 +255,20 @@ public class SimpleNoteTakerApp {
 			this.setTitle(FrameNameBase);
 			return;
 		}
-		NoteVersion item = (NoteVersion) noteListModel.get(index);
-		this.setTitle(FrameNameBase + ": " + item.title);
-		textArea.setText(item.noteBody);
+		NoteVersion noteVersion = (NoteVersion) noteListModel.get(index);
+		this.setTitle(FrameNameBase + ": " + noteVersion.title);
+		textArea.setText(noteVersion.noteBody);
+		
+		noteVersionsComboBoxModel.removeAllElements();
+		CopyOnWriteArrayList<NoteVersion> versions = notes.get(noteVersion.documentUUID);
+		if (versions == null) {
+			System.out.println("Problem reading versions for: " + noteVersion.documentUUID);
+			return;
+		}
+		for (NoteVersion version: versions) {
+			noteVersionsComboBoxModel.addElement(version);
+		}
+		noteVersionsComboBox.setSelectedItem(noteVersion);
 	}
 	
 	Component getTop() {
