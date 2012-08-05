@@ -1,4 +1,4 @@
-package org.pointrel.pointrel20120623.demos;
+package org.pointrel.pointrel20120623.demos.chat;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;

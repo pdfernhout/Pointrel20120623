@@ -1,4 +1,4 @@
-package org.pointrel.pointrel20120623.demos;
+package org.pointrel.pointrel20120623.demos.notetaker;
 
 import java.awt.BorderLayout;
 import java.awt.Component;

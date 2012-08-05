@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.pointrel.pointrel20120623.demos.simplecommunityapp;
+package org.pointrel.pointrel20120623.demos.community;
 
 class User {
 	final public static String ContentType = "text/vnd.pointrel.SimpleCommunityApp.User.json";
