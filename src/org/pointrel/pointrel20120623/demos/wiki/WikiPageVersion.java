@@ -11,7 +11,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 
 class WikiPageVersion {
-	final public static String ContentType = "text/vnd.pointrel.SimpleWiki.WikiPageVersion.json";
+	final public static String ContentType = "text/vnd.pointrel.SimpleWikiApp.WikiPageVersion.json";
 	final public static String Version = "20120623.0.1.0";
 	
 	final String documentUUID;

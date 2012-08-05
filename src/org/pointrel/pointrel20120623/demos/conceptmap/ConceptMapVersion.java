@@ -15,7 +15,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 
 public class ConceptMapVersion {
-	final public static String ContentType = "text/vnd.pointrel.SimpleConceptMap.ConceptMapVersion.json";
+	final public static String ContentType = "text/vnd.pointrel.SimpleConceptMapApp.ConceptMapVersion.json";
 	final public static String Version = "20120623.0.1.0";
 	
 	final String documentUUID;
