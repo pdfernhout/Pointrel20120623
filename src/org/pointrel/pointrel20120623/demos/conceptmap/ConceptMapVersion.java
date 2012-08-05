@@ -14,8 +14,8 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 
-public class ConceptMap {
-	final public static String ContentType = "text/vnd.pointrel.SimpleConceptMap.ConceptMap.json";
+public class ConceptMapVersion {
+	final public static String ContentType = "text/vnd.pointrel.SimpleConceptMap.ConceptMapVersion.json";
 	final public static String Version = "20120623.0.1.0";
 	
 	final String documentUUID;
@@ -57,7 +57,7 @@ public class ConceptMap {
 		return String.valueOf(buf);
 	}
 	
-	public ConceptMap(String documentUUID, String timestamp, String userID, String title, String noteBody) {
+	public ConceptMapVersion(String documentUUID, String timestamp, String userID, String title, String noteBody) {
 		if (documentUUID == null) {
 			throw new RuntimeException("documentUUID should not be null");
 		}
@@ -68,7 +68,7 @@ public class ConceptMap {
 		this.noteBody = noteBody;
 	}
 	
-	public ConceptMap(byte[] content) throws IOException {
+	public ConceptMapVersion(byte[] content) throws IOException {
 		boolean typeChecked = false;
 		boolean versionChecked = false;
 		String documentUUID_Read = null;

@@ -122,7 +122,7 @@ public class SimpleChatApp {
 	}
 
 	protected NewTransactionCallback createNewTransactionCallback() {
-		return new NewTransactionCallback(ChatItem.ContentType) {
+		return new NewTransactionCallback(ChatMessage.ContentType) {
 			
 			@Override
 			protected void insert(String resourceUUID) {
@@ -130,9 +130,9 @@ public class SimpleChatApp {
 				if (chatItemContent == null) {
 					System.out.println("content not found for chat item: " + resourceUUID);
 				}
-				final ChatItem chatItem;
+				final ChatMessage chatItem;
 				try {
-					chatItem = new ChatItem(chatItemContent);
+					chatItem = new ChatMessage(chatItemContent);
 				} catch (IOException e) {
 					e.printStackTrace();
 					return;
@@ -162,7 +162,7 @@ public class SimpleChatApp {
 		workspace.addNewTransactionCallback(newTransactionCallback);
 	}
 
-	protected void addChatItemToLog(final ChatItem chatItem) {
+	protected void addChatItemToLog(final ChatMessage chatItem) {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				System.out.println("================ about to add new chatItem to log2");
@@ -188,8 +188,8 @@ public class SimpleChatApp {
 			public String doInBackground() {
 				String timestamp = Utility.currentTimestamp();
 					
-				ChatItem chatItem = new ChatItem(chatAppChatUUID, timestamp, userID, message);
-				String uri = workspace.addContent(chatItem.toJSONBytes(), ChatItem.ContentType);
+				ChatMessage chatItem = new ChatMessage(chatAppChatUUID, timestamp, userID, message);
+				String uri = workspace.addContent(chatItem.toJSONBytes(), ChatMessage.ContentType);
 				workspace.addSimpleTransaction(uri, "New chat message");
 				
 				if (message.equals("test100")) {
@@ -211,8 +211,8 @@ public class SimpleChatApp {
 			String timestamp = Utility.currentTimestamp();
 			String message = "Testing... #" + i + " " + timestamp;
 			
-			final ChatItem chatItem = new ChatItem(chatAppChatUUID, timestamp, "TestUserID", message);
-			String uri = workspace.addContent(chatItem.toJSONBytes(), ChatItem.ContentType);
+			final ChatMessage chatItem = new ChatMessage(chatAppChatUUID, timestamp, "TestUserID", message);
+			String uri = workspace.addContent(chatItem.toJSONBytes(), ChatMessage.ContentType);
 			workspace.addSimpleTransaction(uri, "New chat message");
 			
 			SwingUtilities.invokeLater(new Runnable() {

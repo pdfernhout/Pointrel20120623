@@ -10,8 +10,8 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 
-class ChatItem {
-	final public static String ContentType = "text/vnd.pointrel.SimpleChatApp.ChatItem.json";
+class ChatMessage {
+	final public static String ContentType = "text/vnd.pointrel.SimpleChatApp.ChatMessage.json";
 	final public static String Version = "20120623.0.1.0";
 	
 	final String chatUUID;
@@ -19,14 +19,14 @@ class ChatItem {
 	final String userID;
 	final String chatMessage;
 	
-	ChatItem(String chatUUID, String timestamp, String userID, String chatMessage) {
+	ChatMessage(String chatUUID, String timestamp, String userID, String chatMessage) {
 		this.chatUUID = chatUUID;
 		this.timestamp = timestamp;
 		this.userID = userID;
 		this.chatMessage = chatMessage;
 	}
 	
-	public ChatItem(byte[] content) throws IOException {
+	public ChatMessage(byte[] content) throws IOException {
 		boolean typeChecked = false;
 		boolean versionChecked = false;
 		String chatUUID_Read = null;

@@ -75,7 +75,7 @@ public class SimpleConceptMapApp {
 	@SuppressWarnings("serial") 
 	class ConceptMapPanel extends JPanel implements MouseListener, MouseMotionListener {
 		// TODO: Think about this concept -- is this mutable or not? When are new versions made? Is something changeable with list? Etc.
-		ConceptMap conceptMap = new ConceptMap(DefaultConceptMapUUID, Utility.currentTimestamp(), "default_user@example.com", "", "");
+		ConceptMapVersion conceptMap = new ConceptMapVersion(DefaultConceptMapUUID, Utility.currentTimestamp(), "default_user@example.com", "", "");
 		ConceptDrawable selected = null;
 		Point down = null;
 		Point offset = null;
@@ -196,7 +196,7 @@ public class SimpleConceptMapApp {
 		byte[] jsonBytes = mapPanel.conceptMap.toJSONBytes();
 		System.out.println(new String(jsonBytes));
 		
-		String conceptMapVersionURI = workspace.addContent(jsonBytes, ConceptMap.ContentType);
+		String conceptMapVersionURI = workspace.addContent(jsonBytes, ConceptMapVersion.ContentType);
 		System.out.println("Writing concept map ==============================================");
 		workspace.addSimpleTransaction(conceptMapVersionURI, "new concept map version");
 		System.out.println("Just wrote new concept map: " + new String(jsonBytes));
@@ -208,7 +208,7 @@ public class SimpleConceptMapApp {
 		if (mapPanel.selected != null) return;
 		System.out.println("checkForAndLoadUpdatedConceptMap proceeding");
 
-		ConceptMap newMap = loadLatestConceptMapForUUID(conceptMapUUIDForApp);
+		ConceptMapVersion newMap = loadLatestConceptMapForUUID(conceptMapUUIDForApp);
 		if (newMap != null) {
 			mapPanel.conceptMap = newMap;
 			mapPanel.repaint();
@@ -218,8 +218,8 @@ public class SimpleConceptMapApp {
 	// TODO: Genericize the code below which is from SimpleNoteTakerApp, so the common patters is common, also to ChatApp
 	// TODO: Should have an index
 	class ConceptMapVersionCollector extends TransactionVisitor {
-		final String encodedContentType = Utility.encodeContentType(ConceptMap.ContentType);
-		ArrayList<ConceptMap> conceptMaps = new ArrayList<ConceptMap>();
+		final String encodedContentType = Utility.encodeContentType(ConceptMapVersion.ContentType);
+		ArrayList<ConceptMapVersion> conceptMaps = new ArrayList<ConceptMapVersion>();
 		final int maximumCount;
 		final String documentUUID;
 		
@@ -233,9 +233,9 @@ public class SimpleConceptMapApp {
 		public boolean resourceInserted(String resourceUUID) {
 			if (!resourceUUID.endsWith(encodedContentType)) return false;
 			byte[] conceptMapContent = workspace.getContentForURI(resourceUUID);
-			ConceptMap conceptMap;
+			ConceptMapVersion conceptMap;
 			try {
-				conceptMap = new ConceptMap(conceptMapContent);
+				conceptMap = new ConceptMapVersion(conceptMapContent);
 			} catch (IOException e) {
 				e.printStackTrace();
 				return false;
@@ -250,7 +250,7 @@ public class SimpleConceptMapApp {
 	}
 	
 	class ConceptMapUUIDCollector extends TransactionVisitor {
-		final String encodedContentType = Utility.encodeContentType(ConceptMap.ContentType);
+		final String encodedContentType = Utility.encodeContentType(ConceptMapVersion.ContentType);
 		final HashSet<String> conceptMapUUIDs = new HashSet<String>();
 		final int maximumCount;
 		
@@ -263,9 +263,9 @@ public class SimpleConceptMapApp {
 		public boolean resourceInserted(String resourceUUID) {
 			if (!resourceUUID.endsWith(encodedContentType)) return false;
 			byte[] conceptMapContent = workspace.getContentForURI(resourceUUID);
-			ConceptMap conceptMap;
+			ConceptMapVersion conceptMap;
 			try {
-				conceptMap = new ConceptMap(conceptMapContent);
+				conceptMap = new ConceptMapVersion(conceptMapContent);
 			} catch (IOException e) {
 				e.printStackTrace();
 				return false;
@@ -277,14 +277,14 @@ public class SimpleConceptMapApp {
 	}
 	
 	// Finds most recently added version of concept map
-	ConceptMap loadLatestConceptMapForUUID(String uuid) {
-		ArrayList<ConceptMap> listItems = loadConceptMapVersionsForUUID(uuid, 1);
+	ConceptMapVersion loadLatestConceptMapForUUID(String uuid) {
+		ArrayList<ConceptMapVersion> listItems = loadConceptMapVersionsForUUID(uuid, 1);
 		if (listItems == null || listItems.isEmpty()) return null;
 		return listItems.get(0);
 	}
 	
 	// Finds all added versions of a concept map up to a maximumCount (use zero for all)
-	ArrayList<ConceptMap> loadConceptMapVersionsForUUID(String uuid, int maximumCount) {
+	ArrayList<ConceptMapVersion> loadConceptMapVersionsForUUID(String uuid, int maximumCount) {
 		// TODO: Should create, maintain, and use an index
 		String transactionURI = workspace.getLatestTransaction();
 		ConceptMapVersionCollector visitor = new ConceptMapVersionCollector(uuid, maximumCount);
