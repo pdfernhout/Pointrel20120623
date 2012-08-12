@@ -56,6 +56,7 @@ public class ResourceViewerUtilityApp {
 	JLabel adviceLabel = new JLabel("Double-click on \"pointrel\" items\nin the editor to load them");
 	JButton saveResourceButton = new JButton("Save resource");
 
+	@SuppressWarnings("unused")
 	private String workspaceVariable;
 
 	public ResourceViewerUtilityApp(String workspaceVariable, File archive, String user) {
