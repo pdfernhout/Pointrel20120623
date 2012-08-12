@@ -28,10 +28,10 @@ public class TransactionVisitor {
 		return false;
 	}
 	
-	public static enum StopType {One, All}
+	public static enum StopType {StopAfterFirstMatch, StopAfterAllBranchesMatch, StopAfterAllBranchesProcessedAndAtLeastOneMatch}
 
 	public static boolean visitAllResourcesInATransactionTreeRecursively(Workspace workspace, String transactionURI, TransactionVisitor visitor) {
-		return visitAllResourcesInATransactionTreeRecursively(workspace, transactionURI, visitor, StopType.One);
+		return visitAllResourcesInATransactionTreeRecursively(workspace, transactionURI, visitor, StopType.StopAfterFirstMatch);
 	}
 
 	/*
@@ -80,12 +80,12 @@ public class TransactionVisitor {
 			for (String transactionURIForRecursing: priors) {
 				if (visitAllResourcesInATransactionTreeRecursively(workspace, transactionURIForRecursing, visitor, stopType)) {
 					matchCount++;
-					if (stopType == StopType.One) return true;
-					if (matchCount == priors.size()) return true;
+					if (stopType == StopType.StopAfterFirstMatch) return true;
+					if (stopType == StopType.StopAfterAllBranchesMatch && matchCount == priors.size()) return true;
 				}
 			}
 			
-			// TODO: Could maybe return here if there are any matches and stopType is All? Or maybe should not?
+			if (stopType == StopType.StopAfterAllBranchesProcessedAndAtLeastOneMatch && matchCount > 0) return true;
 
 			if (visitor.transactionExited(transaction)) return true;
 		}

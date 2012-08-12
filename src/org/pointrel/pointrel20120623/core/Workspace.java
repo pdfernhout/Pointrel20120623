@@ -3,6 +3,7 @@ package org.pointrel.pointrel20120623.core;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.jdesktop.swingworker.SwingWorker;
@@ -28,9 +29,11 @@ public class Workspace {
 	// TODO: This may take a lot of memory, maybe can remove it or reduce it to just strings?
 	// This list may be mostly sorted from oldest to newest, but that won't be totally true if there is branching, where runs segments could overlap
 	final ArrayList<Transaction> transactions = new ArrayList<Transaction>();
+	final LinkedHashMap<String,Transaction> transactionMap = new LinkedHashMap<String,Transaction>();
 	
 	class NewTransactionChecker extends TransactionVisitor {
 		String lastTransactionProcessed;
+		// This boolean should be the same as what is returned by the visitAllResourcesInATransactionTreeRecursively function
 		boolean foundLastTransactionProcessed = false;
 		// This list may end up out of order if branching
 		ArrayList<Transaction> unprocessedTransactions = new ArrayList<Transaction>();
@@ -48,8 +51,13 @@ public class Workspace {
 				foundLastTransactionProcessed = true;
 				return true;
 			}
+			if (transactionMap.containsKey(transaction.uri)) {
+				System.out.println("Hit another previous transaction processed; ending processing branch");
+				return false;
+			}
 			System.out.println("Adding to the list");
 			unprocessedTransactions.add(transaction);
+			transactionMap.put(transaction.uri, transaction);
 			// Handle the case where run up to the end
 			if (lastTransactionProcessed == null && !transaction.hasPriors()) {
 				foundLastTransactionProcessed = true;
@@ -92,7 +100,7 @@ public class Workspace {
 				
 				// There must be some difference
 				NewTransactionChecker visitor = new NewTransactionChecker(lastTransactionProcessed);
-				TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(Workspace.this, currentTransaction, visitor, TransactionVisitor.StopType.All);
+				TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(Workspace.this, currentTransaction, visitor, TransactionVisitor.StopType.StopAfterAllBranchesProcessedAndAtLeastOneMatch);
 				
 				if (currentTransaction != null && !visitor.foundLastTransactionProcessed) {
 					String message = "Unfinished: No support for reverting or switching entire trees yet";
