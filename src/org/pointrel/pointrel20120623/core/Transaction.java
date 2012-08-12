@@ -18,7 +18,7 @@ import com.fasterxml.jackson.core.JsonToken;
 // TODO: Store count of previous transactions
 public class Transaction {
 	final public static String ContentType = "text/vnd.pointrel.Transaction.json";
-	final public static String Version = "20120623.0.3.0";
+	final public static String Version = "20120623.0.4.0";
 	
 	// TODO: Maybe should not store workspace here but should just check it, and also pass it in when writing?
 	final String workspace;
@@ -32,26 +32,24 @@ public class Transaction {
 	// Make these PriorityQueues to keep them sorted so one canonical representation of a transaction
 	final private PriorityQueue<String> inserts = new PriorityQueue<String>();
 	final private PriorityQueue<String> removes = new PriorityQueue<String>();
-	final private String previous;
+
+	// A list of previous transactions that can be considered to be merged into this one
+	// Usually there is just one entry here
+	final private PriorityQueue<String> priors = new PriorityQueue<String>();
 	
-	// An optional list of transactions form other branches that were merged into this line
-	// These are not items needed to be read to process the transaction; these are just of historic interest
-	final private PriorityQueue<String> merges = new PriorityQueue<String>();
-	
-	public Transaction(String workspace, String timestamp, String committer, Collection<String> inserts, Collection<String> removes, String previous, Collection<String> merges, String comment) {
+	public Transaction(String workspace, String timestamp, String committer, Collection<String> inserts, Collection<String> removes, Collection<String> priors, Collection<String> merges, String comment) {
 		this.workspace = workspace;
 		this.timestamp = timestamp;
 		this.committer = committer;
 		if (inserts != null) this.inserts.addAll(inserts);
 		if (removes != null) this.removes.addAll(removes);
-		this.previous = previous;
-		if (merges != null) this.merges.addAll(merges);
+		if (removes != null) this.priors.addAll(removes);
 		this.comment = comment;
 	}
 	
 	// Convenience constructor
 	public Transaction(String workspace, String timestamp, String committer, String insert, String previous, String comment) {
-		this(workspace, timestamp, committer, nullOrList(insert), null, previous, null, comment);
+		this(workspace, timestamp, committer, nullOrList(insert), null, nullOrList(previous), null, comment);
 	}
 	
 	public static Collection<String> nullOrList(String value) {
@@ -66,7 +64,6 @@ public class Transaction {
 		String timestamp_Read = null;
 		String committer_Read = null;
 		String comment_Read = null;
-		String previous_Read = null;
 		
 		JsonFactory jsonFactory = new JsonFactory();
 		ByteArrayInputStream inputStream = new ByteArrayInputStream(content);
@@ -104,10 +101,8 @@ public class Transaction {
 				parseURIArray(jsonParser, inserts);
 			} else if (fieldName.equals("removes")) {
 				parseURIArray(jsonParser, removes);
-			} else if (fieldName.equals("previous")) {
-				previous_Read = jsonParser.getText();
-			} else if (fieldName.equals("merges")) {
-				parseURIArray(jsonParser, merges);	
+			} else if (fieldName.equals("priors")) {
+				parseURIArray(jsonParser, priors);	
 			} else { 
 				throw new IOException("Unrecognized field '" + fieldName + "'");
 			}
@@ -137,13 +132,12 @@ public class Transaction {
 		
 		// inserts can be missing, if none
 		// removes can be missing, if none
-		// previous can be missing, if null
+		// priors can be missing, if none
 
 		workspace = workspace_Read;
 		timestamp = timestamp_Read;
 		committer = committer_Read;
 		comment = comment_Read;
-		previous = previous_Read;
 		uri = transactionURI;
 	}
 
@@ -172,8 +166,7 @@ public class Transaction {
 			// jsonGenerator.writeStringField("signature", signature);
 			if (!inserts.isEmpty()) writeJSONStringArray(jsonGenerator, "inserts", inserts);
 			if (!removes.isEmpty()) writeJSONStringArray(jsonGenerator, "removes", removes);
-			if (previous != null) jsonGenerator.writeStringField("previous", previous);
-			if (!merges.isEmpty()) writeJSONStringArray(jsonGenerator, "merges", merges);
+			if (!priors.isEmpty()) writeJSONStringArray(jsonGenerator, "priors", priors);
 			jsonGenerator.writeEndObject();
 			jsonGenerator.close();
 			return outputStream.toByteArray();
@@ -203,10 +196,6 @@ public class Transaction {
 		return comment;
 	}
 	
-	public String getPrevious() {
-		return previous;
-	}
-	
 	public ArrayList<String> getInserts() {
 		return new ArrayList<String>(inserts);
 	}
@@ -215,8 +204,8 @@ public class Transaction {
 		return new ArrayList<String>(removes);
 	}
 	
-	public ArrayList<String> getMerges() {
-		return new ArrayList<String>(merges);
+	public ArrayList<String> getPriors() {
+		return new ArrayList<String>(priors);
 	}
 	
 	public String getURI() {
@@ -225,5 +214,10 @@ public class Transaction {
 
 	public void setURI(String uri) {
 		this.uri = uri;
+	}
+
+	// Extra accessor to avoid copying just to check size
+	public boolean hasPriors() {
+		return priors.size() > 0;
 	}
 }

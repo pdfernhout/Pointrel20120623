@@ -10,7 +10,7 @@ import org.jdesktop.swingworker.SwingWorker;
 //TODO: Need to think about encoding of workspace variable names from UUIDs?
 
 // TODO: Starting to think only one "Workspace" can have control of a variable at a time? Like locking?
-// But would happen implicitely by one Community app saying it is in a workspace? Maybe should be explicit lock?
+// But would happen implicitly by one Community app saying it is in a workspace? Maybe should be explicit lock?
 
 public class Workspace {
 	
@@ -26,11 +26,13 @@ public class Workspace {
 	int newTransactionLoaderSleepTime = 1000;
 	
 	// TODO: This may take a lot of memory, maybe can remove it or reduce it to just strings?
+	// This list may be mostly sorted from oldest to newest, but that won't be totally true if there is branching, where runs segments could overlap
 	final ArrayList<Transaction> transactions = new ArrayList<Transaction>();
 	
 	class NewTransactionChecker extends TransactionVisitor {
 		String lastTransactionProcessed;
 		boolean foundLastTransactionProcessed = false;
+		// This list may end up out of order if branching
 		ArrayList<Transaction> unprocessedTransactions = new ArrayList<Transaction>();
 		
 		NewTransactionChecker(String lastTransactionProcessed) {
@@ -49,7 +51,7 @@ public class Workspace {
 			System.out.println("Adding to the list");
 			unprocessedTransactions.add(transaction);
 			// Handle the case where run up to the end
-			if (lastTransactionProcessed == null && transaction.getPrevious() == null) {
+			if (lastTransactionProcessed == null && !transaction.hasPriors()) {
 				foundLastTransactionProcessed = true;
 			}
 			return false;
@@ -90,10 +92,10 @@ public class Workspace {
 				
 				// There must be some difference
 				NewTransactionChecker visitor = new NewTransactionChecker(lastTransactionProcessed);
-				TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(Workspace.this, currentTransaction, visitor);
+				TransactionVisitor.visitAllResourcesInATransactionTreeRecursively(Workspace.this, currentTransaction, visitor, TransactionVisitor.StopType.All);
 				
 				if (currentTransaction != null && !visitor.foundLastTransactionProcessed) {
-					String message = "Unfinished: No support for branching or backtracking yet";
+					String message = "Unfinished: No support for reverting or switching entire trees yet";
 					System.out.println(message);
 					RuntimeException exception = new RuntimeException(message);
 					exception.printStackTrace();
@@ -103,6 +105,7 @@ public class Workspace {
 				// TODO: Maybe want to try/catch around these
 				// TODO: Maybe want to do these in separate threads for each callback to give a fair time slice to each
 				
+				// Because of the way branches work, this no longer ensures the transactions are oldest to most recent...
 				Collections.reverse(visitor.unprocessedTransactions);
 				for (Transaction transaction: visitor.unprocessedTransactions) {
 					transactions.add(transaction);

@@ -28,7 +28,7 @@ public class TransactionTest extends TestCase {
 		
 		assertEquals(0, instance2.getRemoves().size());
 		
-		assertEquals(null, instance2.getPrevious());
+		assertEquals(0, instance2.getPriors().size());
 		
 		assertEquals("tester@example.com", instance2.getCommitter());
 		

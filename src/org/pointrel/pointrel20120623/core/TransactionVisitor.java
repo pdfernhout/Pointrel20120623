@@ -4,6 +4,7 @@
 package org.pointrel.pointrel20120623.core;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class TransactionVisitor {
 	
@@ -26,10 +27,15 @@ public class TransactionVisitor {
 	public boolean transactionExited(Transaction transaction) {
 		return false;
 	}
+	
+	public static enum StopType {One, All}
+
+	public static boolean visitAllResourcesInATransactionTreeRecursively(Workspace workspace, String transactionURI, TransactionVisitor visitor) {
+		return visitAllResourcesInATransactionTreeRecursively(workspace, transactionURI, visitor, StopType.One);
+	}
 
 	/*
 	 * Visits all resources in a list (or tree) of transactions recursively.
-	 * TODO: Could be made into a loop now that only one previous is allowed per Transaction.
 	 * TODO: May want to change how this works so that it always calls visitor methods 
 	 * for resources and transactions in the order that they were added,
 	 * perhaps noting for resources if they were later deleted, or, alternatively,
@@ -40,10 +46,11 @@ public class TransactionVisitor {
 	 * @param session The session to get data from
 	 * @param transactionURI The transcario to start from
 	 * @param visitor The visitor object with callbacks
+	 * @param stopType Whether to stop on the first match or whether to be sure every branch matches some stop condition in the visitor
 	 * 
 	 * @return true if found something of interest and finished early; false otherwise
 	 */ 
-	public static boolean visitAllResourcesInATransactionTreeRecursively(Workspace workspace, String transactionURI, TransactionVisitor visitor) {
+	public static boolean visitAllResourcesInATransactionTreeRecursively(Workspace workspace, String transactionURI, TransactionVisitor visitor, StopType stopType) {
 		if (transactionURI != null && transactionURI.length() != 0) {
 			byte[] transactionContent = workspace.getContentForURI(transactionURI);
 			if (transactionContent == null) {
@@ -67,11 +74,18 @@ public class TransactionVisitor {
 				if (visitor.resourceInserted(resourceURI)) return true;
 			}
 			
-			String previousTransactionURI = transaction.getPrevious();
-			
-			if (previousTransactionURI != null) {
-				if (visitAllResourcesInATransactionTreeRecursively(workspace, previousTransactionURI, visitor)) return true;
+			ArrayList<String> priors = transaction.getPriors();
+
+			int matchCount = 0;
+			for (String transactionURIForRecursing: priors) {
+				if (visitAllResourcesInATransactionTreeRecursively(workspace, transactionURIForRecursing, visitor, stopType)) {
+					matchCount++;
+					if (stopType == StopType.One) return true;
+					if (matchCount == priors.size()) return true;
+				}
 			}
+			
+			// TODO: Could maybe return here if there are any matches and stopType is All? Or maybe should not?
 
 			if (visitor.transactionExited(transaction)) return true;
 		}
