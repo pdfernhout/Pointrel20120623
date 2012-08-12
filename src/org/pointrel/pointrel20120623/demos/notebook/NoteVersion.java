@@ -14,21 +14,25 @@ class NoteVersion {
 	final public static String ContentType = "text/vnd.pointrel.SimpleNotebookApp.NoteVersion.json";
 	final public static String Version = "20120623.0.1.0";
 	
+	String uri = null;
 	final String documentUUID;
 	final String timestamp;
 	final String userID;
 	final String title;
 	final String noteBody;
+	final String previousVersion;
 	
-	NoteVersion(String documentUUID, String timestamp, String userID, String title, String noteBody) {
+	NoteVersion(String documentUUID, String timestamp, String userID, String title, String noteBody, String previousVersion) {
 		this.documentUUID = documentUUID;
 		this.timestamp = timestamp;
 		this.userID = userID;
 		this.title = title;
 		this.noteBody = noteBody;
+		this.previousVersion = previousVersion;
 	}
 	
-	public NoteVersion(byte[] content) throws IOException {
+	public NoteVersion(String uri, byte[] content) throws IOException {
+		this.uri = uri;
 		boolean typeChecked = false;
 		boolean versionChecked = false;
 		String documentUUID_Read = null;
@@ -36,6 +40,7 @@ class NoteVersion {
 		String userID_Read = null;
 		String title_Read = null;
 		String noteBody_Read = null;
+		String previousVersion_Read = null;
 		
 		JsonFactory jsonFactory = new JsonFactory();
 		ByteArrayInputStream inputStream = new ByteArrayInputStream(content);
@@ -71,6 +76,8 @@ class NoteVersion {
 				title_Read = jsonParser.getText();
 			} else if (fieldName.equals("noteBody")) {
 				noteBody_Read = jsonParser.getText();
+			} else if (fieldName.equals("previousVersion")) {
+				previousVersion_Read = jsonParser.getText();	
 			} else {
 				throw new IOException("Unrecognized field '" + fieldName + "'");
 			}
@@ -85,11 +92,14 @@ class NoteVersion {
 			throw new RuntimeException("Expected version of " + Version + "  but no version field");
 		}
 		
+		// previousVersion can be null
+		
 		documentUUID = documentUUID_Read;
 		timestamp = timestamp_Read;
 		userID = userID_Read;
 		title = title_Read;
 		noteBody = noteBody_Read;
+		previousVersion = previousVersion_Read;
 	}
 	
 	public byte[] toJSONBytes() {
@@ -108,6 +118,7 @@ class NoteVersion {
 			jsonGenerator.writeStringField("userID", userID);
 			jsonGenerator.writeStringField("title", title);
 			jsonGenerator.writeStringField("noteBody", noteBody);
+			if (previousVersion != null) jsonGenerator.writeStringField("previousVersion", previousVersion);
 			jsonGenerator.writeEndObject();
 			jsonGenerator.close();
 			return outputStream.toByteArray();

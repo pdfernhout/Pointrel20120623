@@ -223,7 +223,7 @@ public class SimpleNotebookApp {
 				}
 				final NoteVersion noteVersion;
 				try {
-					noteVersion = new NoteVersion(noteVersionContent);
+					noteVersion = new NoteVersion(resourceUUID, noteVersionContent);
 				} catch (IOException e) {
 					e.printStackTrace();
 					return;
@@ -290,7 +290,7 @@ public class SimpleNotebookApp {
 		String uuid = Utility.generateUUID(applicationIdentifier);
 		String timestamp = Utility.currentTimestamp();
 		String userID = workspace.getUser();
-		NoteVersion noteVersion = new NoteVersion(uuid, timestamp, userID, newTitle, "");
+		NoteVersion noteVersion = new NoteVersion(uuid, timestamp, userID, newTitle, "", null);
 		saveItem(noteVersion);
 		// String comment = "new note";
 		// workspace.addToListForVariable(applicationIdentifier, noteVersion.documentUUID, comment);
@@ -315,7 +315,7 @@ public class SimpleNotebookApp {
 		}
 		String timestamp = Utility.currentTimestamp();
 		String userID = workspace.getUser();
-		NoteVersion newListItem = new NoteVersion(oldListItem.documentUUID, timestamp, userID, newTitle, oldListItem.noteBody);
+		NoteVersion newListItem = new NoteVersion(oldListItem.documentUUID, timestamp, userID, newTitle, oldListItem.noteBody, oldListItem.uri);
 		noteListModel.set(index, newListItem);
 		saveItem(newListItem);
 		this.setTitle(FrameNameBase + ": " + newTitle);
@@ -354,7 +354,7 @@ public class SimpleNotebookApp {
 		String text = textArea.getText();
 		String timestamp = Utility.currentTimestamp();
 		String userID = workspace.getUser();
-		NoteVersion newListItem = new NoteVersion(oldListItem.documentUUID, timestamp, userID, oldListItem.title, text);
+		NoteVersion newListItem = new NoteVersion(oldListItem.documentUUID, timestamp, userID, oldListItem.title, text, oldListItem.uri);
 		saveItem(newListItem);
 		// Wait for new transaction to show it in list
 		// noteListModel.set(index, newListItem);
