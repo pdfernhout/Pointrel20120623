@@ -16,13 +16,15 @@ import com.fasterxml.jackson.core.JsonToken;
 
 public class ConceptMapVersion {
 	final public static String ContentType = "text/vnd.pointrel.SimpleConceptMapApp.ConceptMapVersion.json";
-	final public static String Version = "20120623.0.1.0";
+	final public static String Version = "20120623.0.2.0";
 	
+	String uri = null;
 	final String documentUUID;
 	final String timestamp;
 	final String userID;
 	final String title;
 	final String noteBody;
+	final String previousVersion;
 	
 	public ArrayList<ConceptDrawable> drawables = new ArrayList<ConceptDrawable>();
 	
@@ -57,7 +59,7 @@ public class ConceptMapVersion {
 		return String.valueOf(buf);
 	}
 	
-	public ConceptMapVersion(String documentUUID, String timestamp, String userID, String title, String noteBody) {
+	public ConceptMapVersion(String documentUUID, String timestamp, String userID, String title, String noteBody, String previousVersion) {
 		if (documentUUID == null) {
 			throw new RuntimeException("documentUUID should not be null");
 		}
@@ -66,9 +68,12 @@ public class ConceptMapVersion {
 		this.userID = userID;
 		this.title = title;
 		this.noteBody = noteBody;
+		this.previousVersion = previousVersion;
 	}
 	
-	public ConceptMapVersion(byte[] content) throws IOException {
+	public ConceptMapVersion(String uri, byte[] content) throws IOException {
+		this.uri = uri;
+		
 		boolean typeChecked = false;
 		boolean versionChecked = false;
 		String documentUUID_Read = null;
@@ -76,6 +81,7 @@ public class ConceptMapVersion {
 		String userID_Read = null;
 		String title_Read = null;
 		String noteBody_Read = null;
+		String previousVersion_Read = null;
 		
 		JsonFactory jsonFactory = new JsonFactory();
 		ByteArrayInputStream inputStream = new ByteArrayInputStream(content);
@@ -136,6 +142,8 @@ public class ConceptMapVersion {
 				title_Read = jsonParser.getText();
 			} else if (fieldName.equals("noteBody")) {
 				noteBody_Read = jsonParser.getText();
+			} else if (fieldName.equals("previousVersion")) {
+				previousVersion_Read = jsonParser.getText();
 			} else {
 				throw new IOException("Unrecognized field '" + fieldName + "'");
 			}
@@ -155,12 +163,14 @@ public class ConceptMapVersion {
 			throw new RuntimeException("The field documentUUID read should not be null");
 		}
 		
+		// Previous version can be null
+		
 		documentUUID = documentUUID_Read;
 		timestamp = timestamp_Read;
 		userID = userID_Read;
 		title = title_Read;
 		noteBody = noteBody_Read;
-
+		previousVersion = previousVersion_Read;
 	}
 
 	private Rectangle decodeRectangle(String stringWithFourIntegers) {
@@ -186,6 +196,7 @@ public class ConceptMapVersion {
 			jsonGenerator.writeStringField("userID", userID);
 			jsonGenerator.writeStringField("title", title);
 			jsonGenerator.writeStringField("noteBody", noteBody);
+			if (previousVersion != null) jsonGenerator.writeStringField("previousVersion", previousVersion);
 			
 			jsonGenerator.writeArrayFieldStart("drawables");
 			for (ConceptDrawable drawable: drawables) {

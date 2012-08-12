@@ -99,7 +99,7 @@ public class SimpleConceptMapApp {
 				}
 				final ConceptMapVersion conceptMapVersion;
 				try {
-					conceptMapVersion = new ConceptMapVersion(conceptMapVersionContent);
+					conceptMapVersion = new ConceptMapVersion(resourceUUID, conceptMapVersionContent);
 				} catch (IOException e) {
 					e.printStackTrace();
 					return;

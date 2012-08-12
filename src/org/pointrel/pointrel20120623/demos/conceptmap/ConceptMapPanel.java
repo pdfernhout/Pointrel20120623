@@ -18,14 +18,15 @@ import org.pointrel.pointrel20120623.core.Utility;
 class ConceptMapPanel extends JPanel implements MouseListener, MouseMotionListener {
 
 	private final SimpleConceptMapApp simpleConceptMapApp;
-	// TODO: Think about this concept -- is this mutable or not? When are new versions made? Is something changeable with list? Etc.
-	ConceptMapVersion conceptMap = new ConceptMapVersion(SimpleConceptMapApp.DefaultConceptMapUUID, Utility.currentTimestamp(), "default_user@example.com", "", "");
+	// TODO: Think more about this concept -- is this really mutable or not? When are new versions made? Is something changeable with list? Etc.
+	ConceptMapVersion conceptMap;
 	ConceptDrawable selected = null;
 	Point down = null;
 	Point offset = null;
 	
 	ConceptMapPanel(SimpleConceptMapApp simpleConceptMapApp) {
 		this.simpleConceptMapApp = simpleConceptMapApp;
+		conceptMap = new ConceptMapVersion(SimpleConceptMapApp.DefaultConceptMapUUID, Utility.currentTimestamp(), simpleConceptMapApp.workspace.getUser(), "", "", null);
 		this.addMouseListener(this);
 		this.addMouseMotionListener(this);
 		ConceptDrawable drawable1 = new ConceptDrawable();
@@ -62,6 +63,7 @@ class ConceptMapPanel extends JPanel implements MouseListener, MouseMotionListen
 			if (drawable.inBound(down)) {
 				selected = drawable;
 				offset = new Point((int)drawable.rectangle.getX() - down.x, (int)drawable.rectangle.getY() - down.y);
+				// TODO: Mutating the concept map; maybe should be immutable?
 				conceptMap.drawables.remove(i);
 				conceptMap.drawables.add(selected);
 				this.repaint();
@@ -74,7 +76,13 @@ class ConceptMapPanel extends JPanel implements MouseListener, MouseMotionListen
 	}
 
 	public void mouseReleased(MouseEvent arg0) {
-		if (selected != null) this.simpleConceptMapApp.saveConceptMap();
+		if (selected != null) {
+			// TODO: Getting away with mutable concept map here because changed version is quickly discarded
+			ConceptMapVersion newConceptMapVersion = new ConceptMapVersion(conceptMap.documentUUID, Utility.currentTimestamp(), simpleConceptMapApp.workspace.getUser(), conceptMap.title, conceptMap.noteBody, conceptMap.uri);
+			newConceptMapVersion.drawables.addAll(conceptMap.drawables);
+			conceptMap = newConceptMapVersion;
+			this.simpleConceptMapApp.saveConceptMap();
+		}
 		selected = null;
 		down = null;
 		offset = null;
