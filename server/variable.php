@@ -105,5 +105,3 @@ if ($new_value != "") {
     print("new_value: $new_value\n");
   }
 }
-
-?>

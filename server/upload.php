@@ -26,5 +26,4 @@ if ($ok == 0) {
     } else { 
       echo "Sorry, there was a problem uploading your file."; 
     } 
-  } 
-?> 
+  }

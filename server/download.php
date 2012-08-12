@@ -46,5 +46,3 @@ if (!startsWith($resource, "pointrel://sha256_")) {
    readfile($file_name);
   } 
 }
-
-?>
